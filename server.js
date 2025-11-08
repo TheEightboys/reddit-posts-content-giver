@@ -16,6 +16,8 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://redditfix.vercel.app",
   "https://redrules.vercel.app",
+     "https://reddit-posts-content-giver.vercel.app",  // ✅ Your Vercel URL
+  "https://reddit-posts-content-giver.onrender.com",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
