@@ -1,350 +1,827 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReddiGen - Post Smarter on Reddit</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReddiGen - AI-Powered Reddit Post Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #ffffff;
+  color: #1a1a1b;
+  overflow-x: hidden;
+}
+
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a1a1b;
+  text-decoration: none;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: #FF4500;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 900;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+  align-items: center;
+}
+
+.nav-links a {
+  color: #1a1a1b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: #FF4500;
+}
+
+.btn-primary {
+  background: #FF4500;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.btn-primary:hover {
+  background: #ff5722;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 69, 0, 0.3);
+}
+
+/* Hero Section */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rem 5% 4rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fff5f2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-content {
+  text-align: center;
+  max-width: 900px;
+  position: relative;
+  z-index: 2;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  color: #FF4500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(255, 69, 0, 0.15);
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  color: #1a1a1b;
+}
+
+.highlight {
+  color: #FF4500;
+  position: relative;
+}
+
+.highlight-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.highlight-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 8px;
+  background: #FF4500;
+  opacity: 0.3;
+  border-radius: 4px;
+}
+
+.hero p {
+  font-size: 1.25rem;
+  color: #666;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  background: white;
+  color: #FF4500;
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  border: 2px solid #FF4500;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #FF4500;
+  color: white;
+}
+
+.stats {
+  display: flex;
+  gap: 4rem;
+  justify-content: center;
+  margin-top: 5rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #FF4500;
+  display: block;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Problem Section */
+.problem-section {
+  padding: 8rem 5%;
+  background: white;
+}
+
+.section-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #1a1a1b;
+}
+
+.section-subtitle {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 4rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 4rem;
+}
+
+.problem-card {
+  background: white;
+  border: 2px solid #f5f5f5;
+  border-radius: 20px;
+  padding: 2.5rem;
+  transition: all 0.3s;
+}
+
+.problem-card:hover {
+  border-color: #FF4500;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 40px rgba(255, 69, 0, 0.1);
+}
+
+.problem-icon {
+  width: 60px;
+  height: 60px;
+  background: #fff5f2;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FF4500;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.problem-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #1a1a1b;
+}
+
+.problem-card p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* How It Works */
+.how-it-works {
+  padding: 8rem 5%;
+  background: #fff5f2;
+}
+
+.steps-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.step-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
+
+.step-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 50px rgba(255, 69, 0, 0.15);
+}
+
+.step-number {
+  width: 50px;
+  height: 50px;
+  background: #FF4500;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin: 0 auto 1.5rem;
+}
+
+.step-icon {
+  width: 70px;
+  height: 70px;
+  background: #fff5f2;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FF4500;
+  font-size: 2rem;
+  margin: 0 auto 1.5rem;
+}
+
+.step-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #1a1a1b;
+}
+
+.step-card p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.arrow-icon {
+  position: absolute;
+  right: -2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  color: #FF4500;
+  opacity: 0.3;
+}
+
+/* Features Section */
+.features-section {
+  padding: 8rem 5%;
+  background: white;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: #fff5f2;
+  border-radius: 20px;
+  padding: 2.5rem;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+}
+
+.feature-card:hover {
+  border-color: #FF4500;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 40px rgba(255, 69, 0, 0.1);
+}
+
+.feature-icon {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FF4500;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.feature-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #1a1a1b;
+}
+
+.feature-card p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Final CTA */
+.final-cta {
+  padding: 8rem 5%;
+  background: linear-gradient(135deg, #FF4500 0%, #ff5722 100%);
+  text-align: center;
+  color: white;
+}
+
+.final-cta h2 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+}
+
+.final-cta p {
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+  opacity: 0.95;
+}
+
+.btn-white {
+  background: white;
+  color: #FF4500;
+  padding: 1rem 3rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.3s;
+  display: inline-block;
+  font-size: 1.1rem;
+}
+
+.btn-white:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Footer */
+.footer {
+  background: #1a1a1b;
+  padding: 4rem 5% 2rem;
+  color: #999;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+.footer-section h4 {
+  color: white;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.footer-links {
+  list-style: none;
+}
+
+.footer-links li {
+  margin-bottom: 0.75rem;
+}
+
+.footer-links a {
+  color: #999;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: #FF4500;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid #333;
+  color: #666;
+}
+
+/* Floating Elements */
+.floating-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+}
+
+.shape-1 {
+  width: 300px;
+  height: 300px;
+  background: #FF4500;
+  top: 10%;
+  right: 5%;
+}
+
+.shape-2 {
+  width: 200px;
+  height: 200px;
+  background: #FF4500;
+  bottom: 10%;
+  left: 5%;
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+  
+  .stats {
+    gap: 2rem;
+  }
+  
+  .cta-buttons {
+    flex-direction: column;
+  }
+  
+  .arrow-icon {
+    display: none;
+  }
+  
+  .navbar {
+    padding: 1rem 5%;
+  }
+}
+</style>
 </head>
 <body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="/" class="logo">
+    <div class="logo-icon">R</div>
+    <span>ReddiGen</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#how-it-works">How it Works</a></li>
+    <li><a href="#features">Features</a></li>
+   
+    <li><a href="/dashboard.html" class="btn-primary">Get Started</a></li>
+  </ul>
+</nav>
+
+<!-- Hero Section -->
+<section id="home" class="hero">
+  <div class="floating-shape shape-1"></div>
+  <div class="floating-shape shape-2"></div>
+  
+  <div class="hero-content">
+    <div class="badge">
+      <i class="fas fa-sparkles"></i>
+      AI-Powered Reddit Content Generation
+    </div>
     
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <i class="fab fa-reddit-alien text-reddit me-2"></i>
-                <span class="fw-bold">ReddiGen</span>
-            </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#features">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#how-it-works">How It Works</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#pricing">Pricing</a>
-                    </li>
-                    <li class="nav-item ms-lg-3">
-                        <a class="btn btn-reddit px-4" href="dashboard.html">Get Started</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <h1>
+      Generate Reddit posts<br>
+      that <span class="highlight highlight-underline">never get removed</span>
+    </h1>
+    
+    <p>
+      ReddiGen automatically fetches subreddit rules and creates perfectly compliant, engaging posts.<br>
+      Stop worrying about post removals and focus on growing your Reddit presence.
+    </p>
+    
+    <div class="cta-buttons">
+      <a href="/dashboard.html" class="btn-primary">Start Creating Free</a>
+      <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-number">100%</span>
+        <span class="stat-label">Rule Compliant</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">50K+</span>
+        <span class="stat-label">Rules Analyzed</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">5s</span>
+        <span class="stat-label">Generation Time</span>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6">
-                    <div class="hero-badge mb-3">
-                        <i class="fas fa-sparkles me-2"></i>AI-Powered Content Optimization
-                    </div>
-                    <h1 class="hero-title mb-4">Post Smarter on <span class="text-reddit">Reddit</span></h1>
-                    <p class="hero-subtitle mb-4">Select your subreddit, customize your content, and let AI generate perfect posts that follow all guidelines.</p>
-                    <div class="d-flex gap-3 mb-5">
-                        <a href="dashboard.html" class="btn btn-reddit btn-lg px-4">
-                            Get Started Free
-                        </a>
-                        <a href="#how-it-works" class="btn btn-outline-dark btn-lg px-4">
-                            Learn More
-                        </a>
-                    </div>
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <div class="stat-number">10K+</div>
-                            <div class="stat-label">Posts Optimized</div>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <div class="stat-number">98%</div>
-                            <div class="stat-label">Approval Rate</div>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <div class="stat-number">5.0</div>
-                            <div class="stat-label">User Rating</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="hero-illustration">
-                        <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="250" cy="250" r="200" fill="#fff8f5" opacity="0.5"/>
-                            <ellipse cx="250" cy="280" rx="100" ry="90" fill="#ff4500"/>
-                            <circle cx="250" cy="200" r="70" fill="#ff4500"/>
-                            <circle cx="230" cy="195" r="15" fill="white"/>
-                            <circle cx="270" cy="195" r="15" fill="white"/>
-                            <circle cx="232" cy="195" r="8" fill="#1a1a1a"/>
-                            <circle cx="272" cy="195" r="8" fill="#1a1a1a"/>
-                            <path d="M 230 215 Q 250 225 270 215" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
-                            <line x1="250" y1="130" x2="250" y2="100" stroke="#ff4500" stroke-width="4"/>
-                            <circle cx="250" cy="95" r="10" fill="#ff4500"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
+<!-- Problem Section -->
+<section class="problem-section">
+  <div class="section-content">
+    <h2 class="section-title">
+      Tired of your Reddit posts <span class="highlight">getting deleted?</span>
+    </h2>
+    <p class="section-subtitle">
+      Every Reddit creator faces the same frustrating problems. You craft the perfect post, hit submit, and minutes later... removed by moderators.
+    </p>
+    
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-icon">
+          <i class="fas fa-exclamation-triangle"></i>
         </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="features-section">
-        <div class="container">
-            <div class="section-header text-center mb-5">
-                <h2 class="section-title">Powerful Features</h2>
-                <p class="section-subtitle">Everything you need to succeed on Reddit</p>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon bg-reddit-light">
-                            <i class="fas fa-search text-reddit"></i>
-                        </div>
-                        <h4 class="feature-title">Select Subreddit</h4>
-                        <p class="feature-text">Choose any subreddit and instantly fetch its posting guidelines</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon bg-success-light">
-                            <i class="fas fa-sliders-h text-success"></i>
-                        </div>
-                        <h4 class="feature-title">Customize Content</h4>
-                        <p class="feature-text">Add your topic, choose style, and set the tone you want</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon bg-warning-light">
-                            <i class="fas fa-wand-magic-sparkles text-warning"></i>
-                        </div>
-                        <h4 class="feature-title">AI Generates</h4>
-                        <p class="feature-text">Get perfect posts that follow all guidelines automatically</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon bg-info-light">
-                            <i class="fas fa-history text-info"></i>
-                        </div>
-                        <h4 class="feature-title">Post History</h4>
-                        <p class="feature-text">Track all your generated posts in one place</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon bg-purple-light">
-                            <i class="fas fa-palette text-purple"></i>
-                        </div>
-                        <h4 class="feature-title">Multiple Styles</h4>
-                        <p class="feature-text">Casual, formal, question-based, or discussion starter</p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon bg-danger-light">
-                            <i class="fas fa-bolt text-danger"></i>
-                        </div>
-                        <h4 class="feature-title">Lightning Fast</h4>
-                        <p class="feature-text">Get results in seconds, not minutes</p>
-                    </div>
-                </div>
-            </div>
+        <h3>Constant Rule Violations</h3>
+        <p>Each subreddit has different rules. Breaking them means instant removal and wasted effort.</p>
+      </div>
+      
+      <div class="problem-card">
+        <div class="problem-icon">
+          <i class="fas fa-trash-alt"></i>
         </div>
-    </section>
-
-    <!-- How It Works Section -->
-    <section id="how-it-works" class="how-it-works-section">
-        <div class="container">
-            <div class="section-header text-center mb-5">
-                <h2 class="section-title">How It Works</h2>
-                <p class="section-subtitle">Three simple steps to create perfect Reddit posts</p>
-            </div>
-            
-            <div class="row g-5">
-                <div class="col-lg-4">
-                    <div class="step-card">
-                        <div class="step-number">1</div>
-                        <div class="step-icon">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <h4 class="step-title">Select Your Subreddit</h4>
-                        <p class="step-text">Choose the target subreddit and our AI will analyze its rules, tone, and community guidelines</p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <div class="step-card">
-                        <div class="step-number">2</div>
-                        <div class="step-icon">
-                            <i class="fas fa-sliders-h"></i>
-                        </div>
-                        <h4 class="step-title">Customize Your Content</h4>
-                        <p class="step-text">Provide your topic, key points, and preferred tone. Adjust settings to match your goals</p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <div class="step-card">
-                        <div class="step-number">3</div>
-                        <div class="step-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <h4 class="step-title">Generate & Publish</h4>
-                        <p class="step-text">Review AI-generated posts, make any final tweaks, and publish with confidence</p>
-                    </div>
-                </div>
-            </div>
+        <h3>Moderator Removals</h3>
+        <p>Hours of work vanish in seconds when moderators remove your carefully crafted content.</p>
+      </div>
+      
+      <div class="problem-card">
+        <div class="problem-icon">
+          <i class="fas fa-book"></i>
         </div>
-    </section>
-
-    <!-- Pricing Section -->
-    <section id="pricing" class="pricing-section">
-        <div class="container">
-            <div class="section-header text-center mb-5">
-                <h2 class="section-title">Simple Pricing</h2>
-                <p class="section-subtitle">Choose the perfect plan</p>
-            </div>
-            
-            <div class="row g-4 justify-content-center">
-                <div class="col-lg-4">
-                    <div class="pricing-card">
-                        <div class="pricing-header">
-                            <h4 class="pricing-name">Free</h4>
-                            <div class="pricing-price">
-                                <span class="price-amount">$0</span>
-                                <span class="price-period">/month</span>
-                            </div>
-                        </div>
-                        <ul class="pricing-features">
-                            <li><i class="fas fa-check"></i>10 posts per month</li>
-                            <li><i class="fas fa-check"></i>All features</li>
-                            <li><i class="fas fa-check"></i>Post history</li>
-                            <li><i class="fas fa-check"></i>Basic support</li>
-                        </ul>
-                        <a href="dashboard.html" class="btn btn-outline-reddit w-100">Get Started</a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <div class="pricing-card featured">
-                        <div class="pricing-badge">Most Popular</div>
-                        <div class="pricing-header">
-                            <h4 class="pricing-name">Pro</h4>
-                            <div class="pricing-price">
-                                <span class="price-amount">$9</span>
-                                <span class="price-period">/month</span>
-                            </div>
-                        </div>
-                        <ul class="pricing-features">
-                            <li><i class="fas fa-check"></i>Unlimited posts</li>
-                            <li><i class="fas fa-check"></i>Priority processing</li>
-                            <li><i class="fas fa-check"></i>Advanced analytics</li>
-                            <li><i class="fas fa-check"></i>Priority support</li>
-                        </ul>
-                        <a href="dashboard.html" class="btn btn-reddit w-100">Start Free Trial</a>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <div class="pricing-card">
-                        <div class="pricing-header">
-                            <h4 class="pricing-name">Enterprise</h4>
-                            <div class="pricing-price">
-                                <span class="price-amount">$29</span>
-                                <span class="price-period">/month</span>
-                            </div>
-                        </div>
-                        <ul class="pricing-features">
-                            <li><i class="fas fa-check"></i>Everything in Pro</li>
-                            <li><i class="fas fa-check"></i>Team collaboration</li>
-                            <li><i class="fas fa-check"></i>API access</li>
-                            <li><i class="fas fa-check"></i>Dedicated support</li>
-                        </ul>
-                        <a href="dashboard.html" class="btn btn-outline-reddit w-100">Contact Sales</a>
-                    </div>
-                </div>
-            </div>
+        <h3>Confusing Guidelines</h3>
+        <p>Reading through lengthy rule pages for every subreddit is time-consuming and confusing.</p>
+      </div>
+      
+      <div class="problem-card">
+        <div class="problem-icon">
+          <i class="fas fa-clock"></i>
         </div>
-    </section>
+        <h3>Time Wasted</h3>
+        <p>Spending hours researching rules instead of creating content that grows your presence.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-content text-center">
-                <h2 class="cta-title mb-3">Ready to Master Reddit?</h2>
-                <p class="cta-text mb-4">Join thousands creating perfect posts in seconds</p>
-                <a href="dashboard.html" class="btn btn-light btn-lg px-5">Get Started Free</a>
-            </div>
+<!-- How It Works -->
+<section id="how-it-works" class="how-it-works">
+  <div class="section-content">
+    <h2 class="section-title">How ReddiGen Works</h2>
+    <p class="section-subtitle">Three simple steps to create rule-compliant, engaging Reddit posts</p>
+    
+    <div class="steps-container">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-icon">
+          <i class="fas fa-search"></i>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-4">
-                    <div class="footer-brand mb-3">
-                        <i class="fab fa-reddit-alien me-2"></i>
-                        <span>ReddiGen</span>
-                    </div>
-                    <p class="footer-text">AI-powered Reddit post optimizer for creating compliant, engaging content.</p>
-                </div>
-                <div class="col-lg-2 col-6">
-                    <h6 class="footer-heading">Product</h6>
-                    <ul class="footer-links">
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#pricing">Pricing</a></li>
-                        <li><a href="#">API</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-6">
-                    <h6 class="footer-heading">Company</h6>
-                    <ul class="footer-links">
-                        <li><a href="#">About</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Careers</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-6">
-                    <h6 class="footer-heading">Legal</h6>
-                    <ul class="footer-links">
-                        <li><a href="#">Privacy</a></li>
-                        <li><a href="#">Terms</a></li>
-                        <li><a href="#">Cookies</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-6">
-                    <h6 class="footer-heading">Resources</h6>
-                    <ul class="footer-links">
-                        <li><a href="#">Docs</a></li>
-                        <li><a href="#">GitHub</a></li>
-                        <li><a href="#">Support</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 ReddiGen. All rights reserved.</p>
-            </div>
+        <h3>Select Subreddit</h3>
+        <p>Enter any subreddit name and our AI instantly fetches all posting rules, guidelines, and community standards.</p>
+        <i class="fas fa-arrow-right arrow-icon"></i>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-icon">
+          <i class="fas fa-edit"></i>
         </div>
-    </footer>
+        <h3>Customize Content</h3>
+        <p>Provide your topic, choose your tone (casual, professional, funny), and set any specific requirements for your post.</p>
+        <i class="fas fa-arrow-right arrow-icon"></i>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <div class="step-icon">
+          <i class="fas fa-magic"></i>
+        </div>
+        <h3>Generate & Post</h3>
+        <p>AI generates a perfectly compliant post following all subreddit rules. Review, edit if needed, and publish with confidence.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="main.js"></script>
+<!-- Features Section -->
+<section id="features" class="features-section">
+  <div class="section-content">
+    <h2 class="section-title">Powerful Features for Reddit Success</h2>
+    <p class="section-subtitle">Everything you need to create engaging, rule-compliant content</p>
+    
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <h3>Automatic Rule Fetching</h3>
+        <p>Instantly retrieves and analyzes all subreddit rules, posting guidelines, and community standards.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3>100% Compliance</h3>
+        <p>AI ensures every generated post follows all rules, reducing removal risk to virtually zero.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-palette"></i>
+        </div>
+        <h3>Multiple Tone Options</h3>
+        <p>Choose from casual, professional, humorous, educational, or discussion-starter tones.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <h3>Lightning Fast</h3>
+        <p>Generate compliant posts in under 5 seconds. No more hours spent researching rules.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-history"></i>
+        </div>
+        <h3>Post History</h3>
+        <p>Track all your generated posts, save favorites, and reuse successful formats.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Engagement Optimization</h3>
+        <p>AI analyzes successful posts in each subreddit to maximize engagement potential.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Final CTA -->
+<section class="final-cta">
+  <h2>Ready to Never Get Your Posts Removed Again?</h2>
+  <p>Join thousands of creators using AI to generate rule-compliant Reddit content</p>
+  <a href="/dashboard.html" class="btn-white">Start Creating Free Posts</a>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4><i class="fas fa-robot"></i> ReddiGen</h4>
+      <p>AI-powered Reddit post generator that ensures 100% rule compliance.</p>
+    </div>
+    
+    <div class="footer-section">
+      <h4>Product</h4>
+      <ul class="footer-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="/dashboard.html">Dashboard</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h4>Resources</h4>
+      <ul class="footer-links">
+        <li><a href="#">Documentation</a></li>
+        <li><a href="#">API</a></li>
+        <li><a href="#">Reddit Guide</a></li>
+        <li><a href="#">Best Practices</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h4>Company</h4>
+      <ul class="footer-links">
+        <li><a href="#">About</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="footer-bottom">
+    <p>&copy; 2025 ReddiGen. All rights reserved. Made with <i class="fas fa-heart" style="color: #FF4500;"></i> for Reddit creators.</p>
+  </div>
+</footer>
+
+<script>
+// Register ScrollTrigger plugin
+gsap.registerPlugin(ScrollTrigger);
+
+// Navbar animation
+gsap.from('.navbar', {
+  y: -100,
+  opacity: 0,
+  duration: 1,
+  ease: 'power3.out'
+});
+</script>
+
 </body>
 </html>
+
