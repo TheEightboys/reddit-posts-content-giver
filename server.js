@@ -15,6 +15,7 @@ const allowedOrigins = [
   "http://localhost:5500",
   "http://localhost:3000",
   "https://redditfix.vercel.app",
+  "https://redrules.vercel.app",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 

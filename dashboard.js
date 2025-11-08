@@ -6,7 +6,9 @@
 const SUPABASE_URL = "https://duzaoqvdukdnbjzccwbp.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1emFvcXZkdWtkbmJqemNjd2JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTE2MTIsImV4cCI6MjA3NzQ2NzYxMn0.eMvGGHRuqzeGjVMjfLViaJnMvaKryGCPWWaDyFK6UP8";
-const API_URL = "http://localhost:3000";
+const API_URL =window.location.hostname === 'localhost'  ? "http://localhost:3000" 
+  : "https://reddit-posts-content-giver.onrender.com";
+ 
 
 // --- GLOBAL STATE ---
 let supabaseClient = null;
