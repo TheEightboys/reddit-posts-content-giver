@@ -14,10 +14,11 @@ const allowedOrigins = [
   "http://127.0.0.1:5500",
   "http://localhost:5500",
   "http://localhost:3000",
-  "https://redditfix.vercel.app",
-  "https://redrules.vercel.app",
-     "https://reddit-posts-content-giver.vercel.app",  // ✅ Your Vercel URL
+  "https://reddit-posts-content-giver.vercel.app",  // ✅ Your Vercel URL
   "https://reddit-posts-content-giver.onrender.com",
+   "https://reddit-posts-content-giver-git-main-theboys-projects-3cf681c8.vercel.app",
+  "https://reddit-posts-content-giver-8wf66t2sf-theboys-projects-3cf681c8.vercel.app",
+  // Your Render backend
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
