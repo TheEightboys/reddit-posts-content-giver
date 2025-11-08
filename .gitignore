@@ -26,3 +26,4 @@ test-*.html
 # Docs
 FIXES_APPLIED.md
 PAYMENT_WORKAROUND.md
+.vercel
