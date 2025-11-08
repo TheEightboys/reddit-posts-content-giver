@@ -10,17 +10,34 @@ const app = express();
 // MIDDLEWARE
 // ==========================================
 
-const allowedOrigins = [
-  "http://127.0.0.1:5500",
-  "http://localhost:5500",
-  "http://localhost:3000",
-  "https://reddit-posts-content-giver.vercel.app",  // ✅ Your Vercel URL
-  "https://reddit-posts-content-giver.onrender.com",
-   "https://reddit-posts-content-giver-git-main-theboys-projects-3cf681c8.vercel.app",
-  "https://reddit-posts-content-giver-8wf66t2sf-theboys-projects-3cf681c8.vercel.app",
-  // Your Render backend
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+// ==========================================
+// CORS PREFLIGHT - ADD THIS BEFORE corsOptions
+// ==========================================
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "http://localhost:3000",
+    "https://reddit-posts-content-giver.vercel.app",
+    "https://reddit-posts-content-giver-git-main-theboys-projects-3cf681c8.vercel.app",
+    "https://reddit-posts-content-giver.onrender.com",
+  ];
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -28,8 +45,8 @@ const corsOptions = {
     if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
-    const msg = "CORS policy does not allow access from this origin.";
-    return callback(new Error(msg), false);
+    console.log("❌ CORS blocked origin:", origin);
+    return callback(new Error("CORS not allowed"), false);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -38,6 +55,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
+
+// ... rest of your server.js code
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname)));
@@ -882,3 +902,18 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+// ==========================================
+// ERROR HANDLING - UPDATE THIS
+// ==========================================
+app.use((err, req, res, next) => {
+  console.error("❌ Server error:", err);
+  
+  // IMPORTANT: Send CORS headers even on errors
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  res.status(500).json({ error: err.message });
+});
