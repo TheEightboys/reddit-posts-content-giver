@@ -1,14 +1,10 @@
-// ============================================
-// PRODUCTION-READY DASHBOARD.JS (FIXED)
-// ============================================
-
-// --- SUPABASE & API CONFIG ---
 const SUPABASE_URL = "https://duzaoqvdukdnbjzccwbp.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1emFvcXZkdWtkbmJqemNjd2JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTE2MTIsImV4cCI6MjA3NzQ2NzYxMn0.eMvGGHRuqzeGjVMjfLViaJnMvaKryGCPWWaDyFK6UP8";
-const API_URL =window.location.hostname === 'localhost'  ? "http://localhost:3000" 
-  : "https://reddit-posts-content-giver.onrender.com";
- 
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://reddit-posts-content-giver.onrender.com";
 
 // --- GLOBAL STATE ---
 let supabaseClient = null;
@@ -65,54 +61,59 @@ window.checkPaymentStorage = function () {
 };
 
 // --- PRICING DATA ---
+// Updated per user request:
+// - Starter: $1.29/month, $11.11/year
+// - Professional: $2.29/month, $19.22/year
+// - Enterprise (repurposed as LIFETIME plan): lifetime access, 300 posts/month, $29.00 (uses lifetime checkout link)
 const PRICING_DATA = {
   starter: {
     monthly: {
-      price: 1.99,
+      price: 1.29,
       posts: 150,
       productId: "pdt_LBHf0mWr6mV54umDhx9cn",
       checkoutUrl:
-        // "https://checkout.dodopayments.com/buy/pdt_LBHf0mWr6mV54umDhx9cn",
-        "https://test.checkout.dodopayments.com/buy/pdt_XocDrGw3HxTb0nD7nyYyl?quantity=1",
+        "https://checkout.dodopayments.com/buy/pdt_LBHf0mWr6mV54umDhx9cn?quantity=1",
     },
     yearly: {
-      price: 21.49,
+      price: 11.11,
       posts: 1800,
       productId: "pdt_RBEfQWVlN9bnWihieBQSt",
       checkoutUrl:
-        "https://checkout.dodopayments.com/buy/pdt_RBEfQWVlN9bnWihieBQSt",
+        "https://checkout.dodopayments.com/buy/pdt_RBEfQWVlN9bnWihieBQSt?quantity=1",
     },
   },
   professional: {
     monthly: {
-      price: 2.99,
+      price: 2.29,
       posts: 250,
       productId: "pdt_dumBrrIeNTtENukKXHiGh",
       checkoutUrl:
-        "https://checkout.dodopayments.com/buy/pdt_dumBrrIeNTtENukKXHiGh",
+        "https://checkout.dodopayments.com/buy/pdt_dumBrrIeNTtENukKXHiGh?quantity=1",
     },
     yearly: {
-      price: 32.49,
+      price: 19.22,
       posts: 3000,
       productId: "pdt_gBCE38rNQm8x30iqAltc6",
       checkoutUrl:
-        "https://checkout.dodopayments.com/buy/pdt_gBCE38rNQm8x30iqAltc6",
+        "https://checkout.dodopayments.com/buy/pdt_gBCE38rNQm8x30iqAltc6?quantity=1",
     },
   },
   enterprise: {
+    // Repurposed as LIFETIME plan (user requested last plan be lifetime)
     monthly: {
-      price: 3.99,
-      posts: 500,
-      productId: "pdt_UHLjlc1qPLgSvK1ubHjgJ",
+      price: 29.0,
+      posts: 300,
+      productId: "pdt_RRL3ngdmgYA1bwfFcbOVl",
       checkoutUrl:
-        "https://checkout.dodopayments.com/buy/pdt_UHLjlc1qPLgSvK1ubHjgJ",
+        "https://checkout.dodopayments.com/buy/pdt_RRL3ngdmgYA1bwfFcbOVl?quantity=1",
     },
     yearly: {
-      price: 43.49,
-      posts: 6000,
-      productId: "pdt_E9rxQwDMZahet7kADcna5",
+      // Keep same checkout for yearly selection (redirect will still work). Lifetime is treated as a one-time product.
+      price: 29.0,
+      posts: 300,
+      productId: "pdt_RRL3ngdmgYA1bwfFcbOVl",
       checkoutUrl:
-        "https://checkout.dodopayments.com/buy/pdt_E9rxQwDMZahet7kADcna5",
+        "https://checkout.dodopayments.com/buy/pdt_RRL3ngdmgYA1bwfFcbOVl?quantity=1",
     },
   },
 };
@@ -158,6 +159,49 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Always load user data to ensure UI is updated
         console.log("📊 Loading user data...");
         await loadUserData();
+
+        // If the user arrived with a pending purchase intent from the landing page, continue checkout
+        try {
+          const pendingIntent = localStorage.getItem("pending_purchase_intent");
+          if (pendingIntent) {
+            console.log("🔔 Found pending purchase intent:", pendingIntent);
+            // Clear it immediately to avoid loops
+            localStorage.removeItem("pending_purchase_intent");
+
+            // pendingIntent format: 'starter_monthly', 'professional_yearly', or 'lifetime'
+            const parts = pendingIntent.split("_");
+            const planPart = parts[0];
+            const cyclePart = parts[1] || null;
+
+            // If cycle provided, set billing radio accordingly
+            if (cyclePart) {
+              const radio = document.querySelector(
+                `input[name="billingCycle"][value="${cyclePart}"]`
+              );
+              if (radio) {
+                radio.checked = true;
+                updatePricingDisplay();
+              }
+            }
+
+            // Map landing 'lifetime' to internal 'enterprise' plan key
+            const planMap = { lifetime: "enterprise" };
+            const planKey = planMap[planPart] || planPart;
+
+            console.log(
+              "➡️ Continuing to initiate purchase for",
+              planKey,
+              cyclePart
+            );
+            // Initiate the Dodo checkout flow (this will save pending_payment and redirect)
+            await initiateDodoPayment(planKey);
+          }
+        } catch (intentErr) {
+          console.warn(
+            "Could not continue pending purchase intent:",
+            intentErr
+          );
+        }
 
         // Hide loading screen after data is loaded
         hideLoadingScreen();
@@ -348,10 +392,10 @@ async function loadUserData() {
 // ==========================================
 async function loadUserData() {
   console.log("[loadUserData] Starting...");
-  
+
   // NUCLEAR OPTION: Skip ALL backend calls and use immediate fallback
   console.log("⚡ Using INSTANT fallback data (no backend required)");
-  
+
   // Set default data immediately
   userProfile = {
     user_id: currentUser?.id || "temp-user-id",
@@ -360,7 +404,7 @@ async function loadUserData() {
     bio: "Welcome to ReddiGen!",
     created_at: new Date().toISOString(),
   };
-  
+
   userPlan = {
     user_id: currentUser?.id || "temp-user-id",
     plan_type: "free",
@@ -370,15 +414,15 @@ async function loadUserData() {
     status: "active",
     activated_at: new Date().toISOString(),
   };
-  
+
   userHistory = [];
-  
+
   // Update UI immediately
   console.log("⚡ Updating UI NOW with fallback data");
   updateUI();
-  
+
   console.log("✅ Dashboard loaded instantly!");
-  
+
   // OPTIONAL: Try to load real data in background (won't block UI)
   setTimeout(() => {
     tryLoadRealDataInBackground();
@@ -388,9 +432,11 @@ async function loadUserData() {
 // Background loader (non-blocking)
 async function tryLoadRealDataInBackground() {
   console.log("🔄 Attempting to load real data in background...");
-  
+
   try {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const {
+      data: { session },
+    } = await supabaseClient.auth.getSession();
     if (!session) {
       console.log("⚠️ No session for background load");
       return;
@@ -400,10 +446,10 @@ async function tryLoadRealDataInBackground() {
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     const response = await fetch(`${API_URL}/api/user/data`, {
-      method: 'GET',
-      headers: { 
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
       },
       signal: controller.signal,
     });
@@ -412,7 +458,7 @@ async function tryLoadRealDataInBackground() {
 
     if (response.ok) {
       const data = await response.json();
-      
+
       if (data.success) {
         console.log("✅ Real data loaded in background!");
         userProfile = data.profile || userProfile;
@@ -435,18 +481,18 @@ async function wakeUpServer() {
 
   try {
     const startTime = Date.now();
-    
+
     // Try to ping the server with 30-second timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds
-    
+
     const response = await fetch(`${API_URL}/api/test`, {
       method: "GET",
       signal: controller.signal,
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       throw new Error(`Server ping returned status ${response.status}`);
     }
@@ -455,19 +501,23 @@ async function wakeUpServer() {
     console.log(`✅ Server is awake! (Took ${duration}s)`);
     showToast("✅ AI server is ready!", "success");
     isServerAwake = true;
-    
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (error.name === "AbortError") {
       console.error("❌ Server ping timeout");
-      showToast("⚠️ Server is taking too long to respond. Features may be limited.", "warning");
+      showToast(
+        "⚠️ Server is taking too long to respond. Features may be limited.",
+        "warning"
+      );
     } else {
       console.error("❌ Server ping failed:", error.message);
-      showToast("⚠️ Could not connect to AI server. Check if server.js is running.", "warning");
+      showToast(
+        "⚠️ Could not connect to AI server. Check if server.js is running.",
+        "warning"
+      );
     }
     isServerAwake = false;
   }
 }
-
 
 // --- END OF NEW/MODIFIED FUNCTIONS ---
 
@@ -503,7 +553,9 @@ function updateUI() {
   setText("creditsLeft", credits);
 
   console.log(`  - Setting profile data:`);
-  console.log(`    profileName: ${userProfile.display_name || userProfile.email}`);
+  console.log(
+    `    profileName: ${userProfile.display_name || userProfile.email}`
+  );
   console.log(`    profileEmail: ${userProfile.email}`);
 
   // Check if elements exist before setting
@@ -528,7 +580,10 @@ function updateUI() {
   setValue("settingsDisplayName", userProfile.display_name || "");
   setValue("settingsBio", userProfile.bio || "");
   setText("settingsCreditsDisplay", credits);
-  setText("settingsCreditsSubtext", `${credits} / ${maxCredits} credits remaining`);
+  setText(
+    "settingsCreditsSubtext",
+    `${credits} / ${maxCredits} credits remaining`
+  );
   setStyle("settingsProgressDisplay", "width", `${progressPercent}%`);
 
   // ============================================
@@ -545,85 +600,88 @@ function updateUI() {
 // ==========================================
 function updatePlanDisplay() {
   if (!userPlan) return;
-  
+
   console.log("📊 Updating plan display");
-  
+
   // Update credits display
-  const creditsEl = document.getElementById('creditsRemaining');
+  const creditsEl = document.getElementById("creditsRemaining");
   if (creditsEl) {
     creditsEl.textContent = userPlan.credits_remaining || 0;
   }
-  
+
   // Update plan badge
-  const planTypeEl = document.getElementById('planType');
+  const planTypeEl = document.getElementById("planType");
   if (planTypeEl) {
     const planNames = {
-      'free': 'FREE',
-      'starter': 'STARTER',
-      'professional': 'PRO',
-      'enterprise': 'ENTERPRISE'
+      free: "FREE",
+      starter: "STARTER",
+      professional: "PRO",
+      enterprise: "ENTERPRISE",
     };
-    planTypeEl.textContent = planNames[userPlan.plan_type] || 'FREE';
-    
+    planTypeEl.textContent = planNames[userPlan.plan_type] || "FREE";
+
     const badgeColors = {
-      'free': 'bg-secondary',
-      'starter': 'bg-primary',
-      'professional': 'bg-success',
-      'enterprise': 'bg-danger'
+      free: "bg-secondary",
+      starter: "bg-primary",
+      professional: "bg-success",
+      enterprise: "bg-danger",
     };
-    planTypeEl.className = `badge ${badgeColors[userPlan.plan_type] || 'bg-secondary'}`;
+    planTypeEl.className = `badge ${
+      badgeColors[userPlan.plan_type] || "bg-secondary"
+    }`;
   }
-  
+
   console.log("✅ Plan display updated");
 }
 
 function checkAndShowCurrentPlan() {
   if (!userPlan) return;
-  
+
   console.log("🔍 Checking plan type:", userPlan.plan_type);
-  
-  const pricingSection = document.getElementById('pricingPlansSection');
-  const currentPlanSection = document.getElementById('currentPlanSection');
-  
-  if (userPlan.plan_type !== 'free') {
+
+  const pricingSection = document.getElementById("pricingPlansSection");
+  const currentPlanSection = document.getElementById("currentPlanSection");
+
+  if (userPlan.plan_type !== "free") {
     console.log("✅ User has paid plan - showing current plan card");
-    if (pricingSection) pricingSection.style.display = 'none';
+    if (pricingSection) pricingSection.style.display = "none";
     if (currentPlanSection) {
-      currentPlanSection.style.display = 'block';
+      currentPlanSection.style.display = "block";
       updateCurrentPlanCard();
     }
   } else {
     console.log("ℹ️ User has free plan - showing pricing");
-    if (pricingSection) pricingSection.style.display = 'block';
-    if (currentPlanSection) currentPlanSection.style.display = 'none';
+    if (pricingSection) pricingSection.style.display = "block";
+    if (currentPlanSection) currentPlanSection.style.display = "none";
   }
 }
 
 function updateCurrentPlanCard() {
   if (!userPlan) return;
-  
-  const card = document.getElementById('currentPlanCard');
+
+  const card = document.getElementById("currentPlanCard");
   if (!card) {
     console.warn("⚠️ currentPlanCard element not found in HTML");
     return;
   }
-  
+
   const planNames = {
-    'starter': 'Starter Plan',
-    'professional': 'Professional Plan',
-    'enterprise': 'Enterprise Plan'
+    starter: "Starter Plan",
+    professional: "Professional Plan",
+    enterprise: "Enterprise Plan",
   };
-  
+
   const expiry = userPlan.expires_at
-    ? new Date(userPlan.expires_at).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+    ? new Date(userPlan.expires_at).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       })
-    : 'Never';
-  
-  const progress = (userPlan.credits_remaining / userPlan.posts_per_month) * 100;
-  
+    : "Never";
+
+  const progress =
+    (userPlan.credits_remaining / userPlan.posts_per_month) * 100;
+
   card.innerHTML = `
     <div class="card border-success shadow-sm">
       <div class="card-body p-4">
@@ -631,11 +689,15 @@ function updateCurrentPlanCard() {
           <h5 class="mb-0"><i class="fas fa-crown text-warning"></i> Current Plan</h5>
           <span class="badge bg-success">Active</span>
         </div>
-        <h3 class="fw-bold mb-3">${planNames[userPlan.plan_type] || 'Starter Plan'}</h3>
+        <h3 class="fw-bold mb-3">${
+          planNames[userPlan.plan_type] || "Starter Plan"
+        }</h3>
         <div class="mb-3">
           <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">Credits:</span>
-            <span class="fw-bold">${userPlan.credits_remaining} / ${userPlan.posts_per_month}</span>
+            <span class="fw-bold">${userPlan.credits_remaining} / ${
+    userPlan.posts_per_month
+  }</span>
           </div>
           <div class="progress" style="height: 10px;">
             <div class="progress-bar bg-success" style="width: ${progress}%"></div>
@@ -644,28 +706,34 @@ function updateCurrentPlanCard() {
         <div class="row text-center bg-light rounded p-3">
           <div class="col-6 border-end">
             <p class="text-muted mb-1 small">Billing</p>
-            <p class="fw-bold mb-0">${userPlan.billing_cycle === 'yearly' ? 'Yearly' : 'Monthly'}</p>
+            <p class="fw-bold mb-0">${
+              userPlan.billing_cycle === "yearly" ? "Yearly" : "Monthly"
+            }</p>
           </div>
           <div class="col-6">
             <p class="text-muted mb-1 small">Renews</p>
             <p class="fw-bold mb-0">${expiry}</p>
           </div>
         </div>
-        ${userPlan.plan_type !== 'enterprise' ? `
+        ${
+          userPlan.plan_type !== "enterprise"
+            ? `
         <div class="mt-4">
           <button class="btn btn-outline-primary w-100" onclick="navigateToPage('pricing')">
             <i class="fas fa-arrow-up"></i> Upgrade Plan
           </button>
         </div>
-        ` : `
+        `
+            : `
         <div class="mt-4 text-center">
           <p class="text-success mb-0"><i class="fas fa-check-circle"></i> You're on the best plan!</p>
         </div>
-        `}
+        `
+        }
       </div>
     </div>
   `;
-  
+
   console.log("✅ Current plan card updated");
 }
 
@@ -1103,13 +1171,12 @@ async function initiateDodoPayment(planType) {
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1";
 
- // ✅ BEST APPROACH - Automatically uses current domain:
-const returnUrl = window.location.hostname.includes('localhost')
-  ? "http://localhost:5500"
-  : window.location.origin;  // This automatically gets the current domain!
+    // ✅ BEST APPROACH - Automatically uses current domain:
+    const returnUrl = window.location.hostname.includes("localhost")
+      ? "http://localhost:5500"
+      : window.location.origin; // This automatically gets the current domain!
 
-localStorage.setItem("payment_return_url", returnUrl);
-
+    localStorage.setItem("payment_return_url", returnUrl);
 
     // Show important redirect info
     showToast("Redirecting to payment...", "info");
@@ -1125,8 +1192,8 @@ localStorage.setItem("payment_return_url", returnUrl);
     console.log("🔗 Redirecting to Dodo checkout:", checkoutUrl.toString());
     console.log("✅ Success redirect URL:", successRedirect);
     console.log("❌ Cancel redirect URL:", cancelRedirect);
-// When creating Dodo checkout, add this metadata:
-// When creating Dodo checkout, add this metadata:
+    // When creating Dodo checkout, add this metadata:
+    // When creating Dodo checkout, add this metadata:
 
     // Show payment instructions to user
     const userConfirmed = confirm(
@@ -1177,14 +1244,14 @@ localStorage.setItem("payment_return_url", returnUrl);
 // ==========================================
 async function handlePaymentReturn() {
   console.log("💳 Checking for payment return...");
-  
+
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionId = urlParams.get('session_id');
-  const status = urlParams.get('status');
-  
+  const sessionId = urlParams.get("session_id");
+  const status = urlParams.get("status");
+
   // Also check localStorage
-  const pendingPayment = localStorage.getItem('pending_payment');
-  
+  const pendingPayment = localStorage.getItem("pending_payment");
+
   if (!sessionId && !pendingPayment) {
     console.log("No payment to process");
     return;
@@ -1204,53 +1271,56 @@ async function handlePaymentReturn() {
     showToast("⏳ Activating your plan...", "info");
 
     // Get auth token
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const {
+      data: { session },
+    } = await supabaseClient.auth.getSession();
     if (!session) {
       throw new Error("Not authenticated. Please sign in again.");
     }
 
     // Verify payment on backend
     const response = await fetch(`${API_URL}/api/payment/verify`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
         sessionId: finalSessionId,
-        plan: paymentData?.plan || 'starter',
-        billingCycle: paymentData?.billingCycle || 'monthly',
+        plan: paymentData?.plan || "starter",
+        billingCycle: paymentData?.billingCycle || "monthly",
         postsPerMonth: paymentData?.postsPerMonth || 50,
         amount: paymentData?.amount || 9.99,
-        email: currentUser?.email
-      })
+        email: currentUser?.email,
+      }),
     });
 
     const result = await response.json();
 
     if (result.success) {
       console.log("✅ Payment verified!");
-      
+
       // Clear pending payment
-      localStorage.removeItem('pending_payment');
-      localStorage.removeItem('payment_error_reported');
-      
+      localStorage.removeItem("pending_payment");
+      localStorage.removeItem("payment_error_reported");
+
       // Remove URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
-      
+
       // Reload user data to get updated plan
       await loadUserData();
-      
+
       // Show success modal with plan details
       showPaymentSuccessModal();
-      
     } else {
       throw new Error(result.error || "Payment verification failed");
     }
-
   } catch (error) {
     console.error("❌ Payment verification error:", error);
-    showToast("⚠️ Could not verify payment. Please refresh the page or contact support.", "error");
+    showToast(
+      "⚠️ Could not verify payment. Please refresh the page or contact support.",
+      "error"
+    );
   }
 }
 
@@ -1269,58 +1339,60 @@ function showPaymentSuccessModal() {
   console.log("🎉 Showing payment success modal");
 
   const planNames = {
-    'free': 'Free Plan',
-    'starter': 'Starter Plan',
-    'professional': 'Professional Plan',
-    'enterprise': 'Enterprise Plan'
+    free: "Free Plan",
+    starter: "Starter Plan",
+    professional: "Professional Plan",
+    enterprise: "Enterprise Plan",
   };
-  
-  const planNameEl = document.getElementById('successPlanName');
-  const creditsEl = document.getElementById('successCredits');
-  const billingEl = document.getElementById('successBilling');
-  const expiryEl = document.getElementById('successExpiry');
-  const postsCountEl = document.getElementById('successPostsCount');
 
-  if (planNameEl) planNameEl.textContent = planNames[userPlan.plan_type] || 'Starter Plan';
+  const planNameEl = document.getElementById("successPlanName");
+  const creditsEl = document.getElementById("successCredits");
+  const billingEl = document.getElementById("successBilling");
+  const expiryEl = document.getElementById("successExpiry");
+  const postsCountEl = document.getElementById("successPostsCount");
+
+  if (planNameEl)
+    planNameEl.textContent = planNames[userPlan.plan_type] || "Starter Plan";
   if (creditsEl) creditsEl.textContent = `${userPlan.credits_remaining} posts`;
-  if (billingEl) billingEl.textContent = userPlan.billing_cycle === 'yearly' ? 'Yearly' : 'Monthly';
+  if (billingEl)
+    billingEl.textContent =
+      userPlan.billing_cycle === "yearly" ? "Yearly" : "Monthly";
   if (postsCountEl) postsCountEl.textContent = userPlan.posts_per_month || 150;
-  
+
   if (expiryEl && userPlan.expires_at) {
     const expiryDate = new Date(userPlan.expires_at);
-    expiryEl.textContent = expiryDate.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    expiryEl.textContent = expiryDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   }
-  
+
   // Show the modal
-  const modalEl = document.getElementById('paymentSuccessModal');
+  const modalEl = document.getElementById("paymentSuccessModal");
   if (modalEl) {
-    if (!bootstrapModals['paymentSuccessModal']) {
-      bootstrapModals['paymentSuccessModal'] = new bootstrap.Modal(modalEl);
+    if (!bootstrapModals["paymentSuccessModal"]) {
+      bootstrapModals["paymentSuccessModal"] = new bootstrap.Modal(modalEl);
     }
-    bootstrapModals['paymentSuccessModal'].show();
+    bootstrapModals["paymentSuccessModal"].show();
   }
 }
 
 function closePaymentSuccessModal() {
-  const modal = bootstrapModals['paymentSuccessModal'];
+  const modal = bootstrapModals["paymentSuccessModal"];
   if (modal) modal.hide();
-  navigateToPage('aiGenerator');
+  navigateToPage("aiGenerator");
 }
 
 // Make it globally accessible
 window.closePaymentSuccessModal = closePaymentSuccessModal;
 
-
 // ==========================================
 // CLOSE PAYMENT SUCCESS MODAL
 // ==========================================
 function closePaymentSuccessModal() {
-  hideModal('paymentSuccessModal');
-  
+  hideModal("paymentSuccessModal");
+
   // Navigate to AI Generator tab
   const aiGenTab = document.querySelector('[data-tab="ai-generator"]');
   if (aiGenTab) {
@@ -1333,54 +1405,56 @@ function closePaymentSuccessModal() {
 // ==========================================
 function updatePlanDisplay() {
   console.log("📊 Updating plan display");
-  
+
   if (!userPlan) {
     console.warn("No plan data available");
     return;
   }
 
   // Update credits display
-  const creditsEl = document.getElementById('creditsRemaining');
+  const creditsEl = document.getElementById("creditsRemaining");
   if (creditsEl) {
     creditsEl.textContent = userPlan.credits_remaining || 0;
   }
 
   // Update plan badge
-  const planTypeEl = document.getElementById('planType');
+  const planTypeEl = document.getElementById("planType");
   if (planTypeEl) {
     const planNames = {
-      'free': 'FREE',
-      'starter': 'STARTER',
-      'professional': 'PRO',
-      'enterprise': 'ENTERPRISE'
+      free: "FREE",
+      starter: "STARTER",
+      professional: "PRO",
+      enterprise: "ENTERPRISE",
     };
-    planTypeEl.textContent = planNames[userPlan.plan_type] || 'FREE';
-    
+    planTypeEl.textContent = planNames[userPlan.plan_type] || "FREE";
+
     // Update badge color
     const badgeColors = {
-      'free': 'bg-secondary',
-      'starter': 'bg-primary',
-      'professional': 'bg-success',
-      'enterprise': 'bg-danger'
+      free: "bg-secondary",
+      starter: "bg-primary",
+      professional: "bg-success",
+      enterprise: "bg-danger",
     };
-    planTypeEl.className = `badge ${badgeColors[userPlan.plan_type] || 'bg-secondary'}`;
+    planTypeEl.className = `badge ${
+      badgeColors[userPlan.plan_type] || "bg-secondary"
+    }`;
   }
 
   // Show/hide pricing section based on plan
-  const pricingSection = document.getElementById('pricingPlansSection');
-  const currentPlanSection = document.getElementById('currentPlanSection');
-  
-  if (userPlan.plan_type !== 'free') {
+  const pricingSection = document.getElementById("pricingPlansSection");
+  const currentPlanSection = document.getElementById("currentPlanSection");
+
+  if (userPlan.plan_type !== "free") {
     // Hide pricing, show current plan
-    if (pricingSection) pricingSection.style.display = 'none';
+    if (pricingSection) pricingSection.style.display = "none";
     if (currentPlanSection) {
-      currentPlanSection.style.display = 'block';
+      currentPlanSection.style.display = "block";
       updateCurrentPlanDisplay();
     }
   } else {
     // Show pricing, hide current plan
-    if (pricingSection) pricingSection.style.display = 'block';
-    if (currentPlanSection) currentPlanSection.style.display = 'none';
+    if (pricingSection) pricingSection.style.display = "block";
+    if (currentPlanSection) currentPlanSection.style.display = "none";
   }
 
   console.log("✅ Plan display updated");
@@ -1392,23 +1466,23 @@ function updatePlanDisplay() {
 function updateCurrentPlanDisplay() {
   if (!userPlan) return;
 
-  const currentPlanCard = document.getElementById('currentPlanCard');
+  const currentPlanCard = document.getElementById("currentPlanCard");
   if (!currentPlanCard) return;
 
   const planNames = {
-    'free': 'Free Plan',
-    'starter': 'Starter Plan',
-    'professional': 'Professional Plan',
-    'enterprise': 'Enterprise Plan'
+    free: "Free Plan",
+    starter: "Starter Plan",
+    professional: "Professional Plan",
+    enterprise: "Enterprise Plan",
   };
 
-  const expiryDate = userPlan.expires_at 
-    ? new Date(userPlan.expires_at).toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
+  const expiryDate = userPlan.expires_at
+    ? new Date(userPlan.expires_at).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       })
-    : 'Never';
+    : "Never";
 
   currentPlanCard.innerHTML = `
     <div class="card border-success">
@@ -1418,16 +1492,22 @@ function updateCurrentPlanDisplay() {
           <span class="badge bg-success">Active</span>
         </div>
         
-        <h3 class="fw-bold mb-3">${planNames[userPlan.plan_type] || 'Starter Plan'}</h3>
+        <h3 class="fw-bold mb-3">${
+          planNames[userPlan.plan_type] || "Starter Plan"
+        }</h3>
         
         <div class="mb-3">
           <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">Credits Remaining:</span>
-            <span class="fw-bold">${userPlan.credits_remaining} / ${userPlan.posts_per_month}</span>
+            <span class="fw-bold">${userPlan.credits_remaining} / ${
+    userPlan.posts_per_month
+  }</span>
           </div>
           <div class="progress" style="height: 8px;">
             <div class="progress-bar bg-success" role="progressbar" 
-                 style="width: ${(userPlan.credits_remaining / userPlan.posts_per_month) * 100}%">
+                 style="width: ${
+                   (userPlan.credits_remaining / userPlan.posts_per_month) * 100
+                 }%">
             </div>
           </div>
         </div>
@@ -1435,7 +1515,9 @@ function updateCurrentPlanDisplay() {
         <div class="row text-center mt-4">
           <div class="col-6">
             <p class="text-muted mb-1 small">Billing Cycle</p>
-            <p class="fw-bold mb-0">${userPlan.billing_cycle === 'yearly' ? 'Yearly' : 'Monthly'}</p>
+            <p class="fw-bold mb-0">${
+              userPlan.billing_cycle === "yearly" ? "Yearly" : "Monthly"
+            }</p>
           </div>
           <div class="col-6">
             <p class="text-muted mb-1 small">Renews On</p>
@@ -1443,13 +1525,17 @@ function updateCurrentPlanDisplay() {
           </div>
         </div>
         
-        ${userPlan.plan_type !== 'enterprise' ? `
+        ${
+          userPlan.plan_type !== "enterprise"
+            ? `
         <div class="mt-4">
           <button class="btn btn-outline-primary w-100" onclick="showModal('pricingModal')">
             <i class="fas fa-arrow-up"></i> Upgrade Plan
           </button>
         </div>
-        ` : ''}
+        `
+            : ""
+        }
       </div>
     </div>
   `;

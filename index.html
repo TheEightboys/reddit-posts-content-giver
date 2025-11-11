@@ -1,827 +1,1848 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ReddiGen - AI-Powered Reddit Post Generator</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-  background: #ffffff;
-  color: #1a1a1b;
-  overflow-x: hidden;
-}
-
-/* Navbar */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 1.5rem 5%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 1000;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.05);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #1a1a1b;
-  text-decoration: none;
-}
-
-.logo-icon {
-  width: 40px;
-  height: 40px;
-  background: #FF4500;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 900;
-}
-
-.nav-links {
-  display: flex;
-  gap: 2.5rem;
-  list-style: none;
-  align-items: center;
-}
-
-.nav-links a {
-  color: #1a1a1b;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s;
-}
-
-.nav-links a:hover {
-  color: #FF4500;
-}
-
-.btn-primary {
-  background: #FF4500;
-  color: white;
-  padding: 0.75rem 2rem;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s;
-  border: none;
-  cursor: pointer;
-  display: inline-block;
-}
-
-.btn-primary:hover {
-  background: #ff5722;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(255, 69, 0, 0.3);
-}
-
-/* Hero Section */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8rem 5% 4rem;
-  background: linear-gradient(135deg, #ffffff 0%, #fff5f2 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-content {
-  text-align: center;
-  max-width: 900px;
-  position: relative;
-  z-index: 2;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #fff;
-  color: #FF4500;
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(255, 69, 0, 0.15);
-}
-
-.hero h1 {
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  font-weight: 900;
-  line-height: 1.1;
-  margin-bottom: 1.5rem;
-  color: #1a1a1b;
-}
-
-.highlight {
-  color: #FF4500;
-  position: relative;
-}
-
-.highlight-underline {
-  position: relative;
-  display: inline-block;
-}
-
-.highlight-underline::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -5px;
-  width: 100%;
-  height: 8px;
-  background: #FF4500;
-  opacity: 0.3;
-  border-radius: 4px;
-}
-
-.hero p {
-  font-size: 1.25rem;
-  color: #666;
-  margin-bottom: 3rem;
-  line-height: 1.6;
-}
-
-.cta-buttons {
-  display: flex;
-  gap: 1.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.btn-secondary {
-  background: white;
-  color: #FF4500;
-  padding: 0.75rem 2rem;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: 600;
-  border: 2px solid #FF4500;
-  transition: all 0.3s;
-}
-
-.btn-secondary:hover {
-  background: #FF4500;
-  color: white;
-}
-
-.stats {
-  display: flex;
-  gap: 4rem;
-  justify-content: center;
-  margin-top: 5rem;
-  flex-wrap: wrap;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-number {
-  font-size: 3rem;
-  font-weight: 900;
-  color: #FF4500;
-  display: block;
-}
-
-.stat-label {
-  color: #666;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Problem Section */
-.problem-section {
-  padding: 8rem 5%;
-  background: white;
-}
-
-.section-content {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.section-title {
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 900;
-  text-align: center;
-  margin-bottom: 3rem;
-  color: #1a1a1b;
-}
-
-.section-subtitle {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #666;
-  margin-bottom: 4rem;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.problem-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 4rem;
-}
-
-.problem-card {
-  background: white;
-  border: 2px solid #f5f5f5;
-  border-radius: 20px;
-  padding: 2.5rem;
-  transition: all 0.3s;
-}
-
-.problem-card:hover {
-  border-color: #FF4500;
-  transform: translateY(-5px);
-  box-shadow: 0 10px 40px rgba(255, 69, 0, 0.1);
-}
-
-.problem-icon {
-  width: 60px;
-  height: 60px;
-  background: #fff5f2;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FF4500;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.problem-card h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: #1a1a1b;
-}
-
-.problem-card p {
-  color: #666;
-  line-height: 1.6;
-}
-
-/* How It Works */
-.how-it-works {
-  padding: 8rem 5%;
-  background: #fff5f2;
-}
-
-.steps-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 3rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.step-card {
-  background: white;
-  border-radius: 20px;
-  padding: 2.5rem;
-  position: relative;
-  text-align: center;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.05);
-  transition: all 0.3s;
-}
-
-.step-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 10px 50px rgba(255, 69, 0, 0.15);
-}
-
-.step-number {
-  width: 50px;
-  height: 50px;
-  background: #FF4500;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 900;
-  margin: 0 auto 1.5rem;
-}
-
-.step-icon {
-  width: 70px;
-  height: 70px;
-  background: #fff5f2;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FF4500;
-  font-size: 2rem;
-  margin: 0 auto 1.5rem;
-}
-
-.step-card h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: #1a1a1b;
-}
-
-.step-card p {
-  color: #666;
-  line-height: 1.6;
-}
-
-.arrow-icon {
-  position: absolute;
-  right: -2rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 2rem;
-  color: #FF4500;
-  opacity: 0.3;
-}
-
-/* Features Section */
-.features-section {
-  padding: 8rem 5%;
-  background: white;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.feature-card {
-  background: #fff5f2;
-  border-radius: 20px;
-  padding: 2.5rem;
-  transition: all 0.3s;
-  border: 2px solid transparent;
-}
-
-.feature-card:hover {
-  border-color: #FF4500;
-  transform: translateY(-5px);
-  box-shadow: 0 10px 40px rgba(255, 69, 0, 0.1);
-}
-
-.feature-icon {
-  width: 60px;
-  height: 60px;
-  background: white;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FF4500;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.feature-card h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: #1a1a1b;
-}
-
-.feature-card p {
-  color: #666;
-  line-height: 1.6;
-}
-
-/* Final CTA */
-.final-cta {
-  padding: 8rem 5%;
-  background: linear-gradient(135deg, #FF4500 0%, #ff5722 100%);
-  text-align: center;
-  color: white;
-}
-
-.final-cta h2 {
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 900;
-  margin-bottom: 1.5rem;
-}
-
-.final-cta p {
-  font-size: 1.2rem;
-  margin-bottom: 3rem;
-  opacity: 0.95;
-}
-
-.btn-white {
-  background: white;
-  color: #FF4500;
-  padding: 1rem 3rem;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: 700;
-  transition: all 0.3s;
-  display: inline-block;
-  font-size: 1.1rem;
-}
-
-.btn-white:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-/* Footer */
-.footer {
-  background: #1a1a1b;
-  padding: 4rem 5% 2rem;
-  color: #999;
-}
-
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 3rem;
-  margin-bottom: 3rem;
-}
-
-.footer-section h4 {
-  color: white;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.footer-links {
-  list-style: none;
-}
-
-.footer-links li {
-  margin-bottom: 0.75rem;
-}
-
-.footer-links a {
-  color: #999;
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-.footer-links a:hover {
-  color: #FF4500;
-}
-
-.footer-bottom {
-  text-align: center;
-  padding-top: 2rem;
-  border-top: 1px solid #333;
-  color: #666;
-}
-
-/* Floating Elements */
-.floating-shape {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.1;
-}
-
-.shape-1 {
-  width: 300px;
-  height: 300px;
-  background: #FF4500;
-  top: 10%;
-  right: 5%;
-}
-
-.shape-2 {
-  width: 200px;
-  height: 200px;
-  background: #FF4500;
-  bottom: 10%;
-  left: 5%;
-}
-
-@media (max-width: 768px) {
-  .nav-links {
-    display: none;
-  }
-  
-  .stats {
-    gap: 2rem;
-  }
-  
-  .cta-buttons {
-    flex-direction: column;
-  }
-  
-  .arrow-icon {
-    display: none;
-  }
-  
-  .navbar {
-    padding: 1rem 5%;
-  }
-}
-</style>
-</head>
-<body>
-
-<!-- Navbar -->
-<nav class="navbar">
-  <a href="/" class="logo">
-    <div class="logo-icon">R</div>
-    <span>ReddiGen</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="#home">Home</a></li>
-    <li><a href="#how-it-works">How it Works</a></li>
-    <li><a href="#features">Features</a></li>
-   
-    <li><a href="/dashboard.html" class="btn-primary">Get Started</a></li>
-  </ul>
-</nav>
-
-<!-- Hero Section -->
-<section id="home" class="hero">
-  <div class="floating-shape shape-1"></div>
-  <div class="floating-shape shape-2"></div>
-  
-  <div class="hero-content">
-    <div class="badge">
-      <i class="fas fa-sparkles"></i>
-      AI-Powered Reddit Content Generation
-    </div>
-    
-    <h1>
-      Generate Reddit posts<br>
-      that <span class="highlight highlight-underline">never get removed</span>
-    </h1>
-    
-    <p>
-      ReddiGen automatically fetches subreddit rules and creates perfectly compliant, engaging posts.<br>
-      Stop worrying about post removals and focus on growing your Reddit presence.
-    </p>
-    
-    <div class="cta-buttons">
-      <a href="/dashboard.html" class="btn-primary">Start Creating Free</a>
-      <a href="#how-it-works" class="btn-secondary">See How It Works</a>
-    </div>
-    
-    <div class="stats">
-      <div class="stat-item">
-        <span class="stat-number">100%</span>
-        <span class="stat-label">Rule Compliant</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number">50K+</span>
-        <span class="stat-label">Rules Analyzed</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number">5s</span>
-        <span class="stat-label">Generation Time</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Problem Section -->
-<section class="problem-section">
-  <div class="section-content">
-    <h2 class="section-title">
-      Tired of your Reddit posts <span class="highlight">getting deleted?</span>
-    </h2>
-    <p class="section-subtitle">
-      Every Reddit creator faces the same frustrating problems. You craft the perfect post, hit submit, and minutes later... removed by moderators.
-    </p>
-    
-    <div class="problem-grid">
-      <div class="problem-card">
-        <div class="problem-icon">
-          <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <h3>Constant Rule Violations</h3>
-        <p>Each subreddit has different rules. Breaking them means instant removal and wasted effort.</p>
-      </div>
-      
-      <div class="problem-card">
-        <div class="problem-icon">
-          <i class="fas fa-trash-alt"></i>
-        </div>
-        <h3>Moderator Removals</h3>
-        <p>Hours of work vanish in seconds when moderators remove your carefully crafted content.</p>
-      </div>
-      
-      <div class="problem-card">
-        <div class="problem-icon">
-          <i class="fas fa-book"></i>
-        </div>
-        <h3>Confusing Guidelines</h3>
-        <p>Reading through lengthy rule pages for every subreddit is time-consuming and confusing.</p>
-      </div>
-      
-      <div class="problem-card">
-        <div class="problem-icon">
-          <i class="fas fa-clock"></i>
-        </div>
-        <h3>Time Wasted</h3>
-        <p>Spending hours researching rules instead of creating content that grows your presence.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- How It Works -->
-<section id="how-it-works" class="how-it-works">
-  <div class="section-content">
-    <h2 class="section-title">How ReddiGen Works</h2>
-    <p class="section-subtitle">Three simple steps to create rule-compliant, engaging Reddit posts</p>
-    
-    <div class="steps-container">
-      <div class="step-card">
-        <div class="step-number">1</div>
-        <div class="step-icon">
-          <i class="fas fa-search"></i>
-        </div>
-        <h3>Select Subreddit</h3>
-        <p>Enter any subreddit name and our AI instantly fetches all posting rules, guidelines, and community standards.</p>
-        <i class="fas fa-arrow-right arrow-icon"></i>
-      </div>
-      
-      <div class="step-card">
-        <div class="step-number">2</div>
-        <div class="step-icon">
-          <i class="fas fa-edit"></i>
-        </div>
-        <h3>Customize Content</h3>
-        <p>Provide your topic, choose your tone (casual, professional, funny), and set any specific requirements for your post.</p>
-        <i class="fas fa-arrow-right arrow-icon"></i>
-      </div>
-      
-      <div class="step-card">
-        <div class="step-number">3</div>
-        <div class="step-icon">
-          <i class="fas fa-magic"></i>
-        </div>
-        <h3>Generate & Post</h3>
-        <p>AI generates a perfectly compliant post following all subreddit rules. Review, edit if needed, and publish with confidence.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Features Section -->
-<section id="features" class="features-section">
-  <div class="section-content">
-    <h2 class="section-title">Powerful Features for Reddit Success</h2>
-    <p class="section-subtitle">Everything you need to create engaging, rule-compliant content</p>
-    
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <h3>Automatic Rule Fetching</h3>
-        <p>Instantly retrieves and analyzes all subreddit rules, posting guidelines, and community standards.</p>
-      </div>
-      
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-shield-alt"></i>
-        </div>
-        <h3>100% Compliance</h3>
-        <p>AI ensures every generated post follows all rules, reducing removal risk to virtually zero.</p>
-      </div>
-      
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-palette"></i>
-        </div>
-        <h3>Multiple Tone Options</h3>
-        <p>Choose from casual, professional, humorous, educational, or discussion-starter tones.</p>
-      </div>
-      
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-bolt"></i>
-        </div>
-        <h3>Lightning Fast</h3>
-        <p>Generate compliant posts in under 5 seconds. No more hours spent researching rules.</p>
-      </div>
-      
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-history"></i>
-        </div>
-        <h3>Post History</h3>
-        <p>Track all your generated posts, save favorites, and reuse successful formats.</p>
-      </div>
-      
-      <div class="feature-card">
-        <div class="feature-icon">
-          <i class="fas fa-chart-line"></i>
-        </div>
-        <h3>Engagement Optimization</h3>
-        <p>AI analyzes successful posts in each subreddit to maximize engagement potential.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-
-<!-- Final CTA -->
-<section class="final-cta">
-  <h2>Ready to Never Get Your Posts Removed Again?</h2>
-  <p>Join thousands of creators using AI to generate rule-compliant Reddit content</p>
-  <a href="/dashboard.html" class="btn-white">Start Creating Free Posts</a>
-</section>
-
-<!-- Footer -->
-<footer class="footer">
-  <div class="footer-content">
-    <div class="footer-section">
-      <h4><i class="fas fa-robot"></i> ReddiGen</h4>
-      <p>AI-powered Reddit post generator that ensures 100% rule compliance.</p>
-    </div>
-    
-    <div class="footer-section">
-      <h4>Product</h4>
-      <ul class="footer-links">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ReddiGen - AI-Powered Reddit Post Generator</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: #ffffff;
+        color: #1a1a1b;
+        overflow-x: hidden;
+      }
+
+      /* Navbar */
+      .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        padding: 1.2rem 5%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1a1a1b;
+        text-decoration: none;
+        transition: transform 0.3s;
+      }
+
+      .logo:hover {
+        transform: scale(1.05);
+      }
+
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 900;
+        box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2.5rem;
+        list-style: none;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: #1a1a1b;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s;
+        position: relative;
+      }
+
+      .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: #ff4500;
+        transition: width 0.3s;
+      }
+
+      .nav-links a:hover {
+        color: #ff4500;
+      }
+
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+
+      .nav-account {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .user-dropdown {
+        position: relative;
+      }
+
+      .user-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid transparent;
+      }
+
+      .user-avatar:hover {
+        border-color: #ff4500;
+        transform: scale(1.1);
+      }
+
+      .dropdown-menu-custom {
+        position: absolute;
+        top: 50px;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        padding: 0.5rem;
+        min-width: 200px;
+        display: none;
+        animation: fadeIn 0.3s;
+      }
+
+      .dropdown-menu-custom.show {
+        display: block;
+      }
+
+      .dropdown-item-custom {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #1a1a1b;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+
+      .dropdown-item-custom:hover {
+        background: #fff5f2;
+        color: #ff4500;
+      }
+
+      .dropdown-divider {
+        height: 1px;
+        background: #f0f0f0;
+        margin: 0.5rem 0;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #ff4500 0%, #ff5722 100%);
+        color: white;
+        padding: 0.75rem 1.75rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(255, 69, 0, 0.2);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(255, 69, 0, 0.35);
+      }
+
+      .btn-secondary {
+        background: white;
+        color: #ff4500;
+        padding: 0.75rem 1.75rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        border: 2px solid #ff4500;
+        transition: all 0.3s;
+        display: inline-block;
+      }
+
+      .btn-secondary:hover {
+        background: #ff4500;
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      /* Hero Section - Enhanced */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8rem 5% 4rem;
+        background: linear-gradient(135deg, #ffffff 0%, #fff9f7 50%, #fff5f2 100%);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-content {
+        text-align: center;
+        max-width: 900px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        color: #ff4500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(255, 69, 0, 0.15);
+        border: 1px solid rgba(255, 69, 0, 0.1);
+      }
+
+      .badge i {
+        animation: sparkle 2s infinite;
+      }
+
+      @keyframes sparkle {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.2) rotate(180deg); }
+      }
+
+      .hero h1 {
+        font-size: clamp(2.5rem, 6vw, 5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        color: #1a1a1b;
+        letter-spacing: -0.02em;
+      }
+
+      .highlight {
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+      }
+
+      .highlight-underline {
+        position: relative;
+        display: inline-block;
+      }
+
+      .highlight-underline::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -5px;
+        width: 100%;
+        height: 8px;
+        background: linear-gradient(90deg, #ff4500 0%, rgba(255, 69, 0, 0.3) 100%);
+        border-radius: 4px;
+        animation: underlineGrow 1.5s ease-out;
+      }
+
+      @keyframes underlineGrow {
+        from { width: 0; }
+        to { width: 100%; }
+      }
+
+      .hero p {
+        font-size: 1.25rem;
+        color: #666;
+        margin-bottom: 3rem;
+        line-height: 1.8;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 4rem;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 3rem;
+        margin-top: 5rem;
+        padding: 3rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 3rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      /* Problem Section - Enhanced */
+      .problem-section {
+        padding: 8rem 5%;
+        background: white;
+      }
+
+      .section-content {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .section-title {
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        font-weight: 900;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        color: #1a1a1b;
+        letter-spacing: -0.02em;
+      }
+
+      .section-subtitle {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #666;
+        margin-bottom: 4rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.8;
+      }
+
+      .problem-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 4rem;
+      }
+
+      .problem-card {
+        background: linear-gradient(135deg, #ffffff 0%, #fff9f7 100%);
+        border: 2px solid #f5f5f5;
+        border-radius: 20px;
+        padding: 2.5rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .problem-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff4500, #ff6b35);
+        transform: scaleX(0);
+        transition: transform 0.4s;
+      }
+
+      .problem-card:hover {
+        border-color: #ff4500;
+        transform: translateY(-8px);
+        box-shadow: 0 15px 50px rgba(255, 69, 0, 0.15);
+      }
+
+      .problem-card:hover::before {
+        transform: scaleX(1);
+      }
+
+      .problem-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #fff5f2 0%, #ffe8e0 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ff4500;
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s;
+      }
+
+      .problem-card:hover .problem-icon {
+        transform: scale(1.1) rotate(5deg);
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        color: white;
+      }
+
+      .problem-card h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1a1a1b;
+      }
+
+      .problem-card p {
+        color: #666;
+        line-height: 1.8;
+        flex-grow: 1;
+      }
+
+      /* How It Works - Enhanced */
+      .how-it-works {
+        padding: 8rem 5%;
+        background: linear-gradient(180deg, #ffffff 0%, #fff9f7 50%, #fff5f2 100%);
+      }
+
+      .steps-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 3rem;
+        max-width: 1200px;
+        margin: 4rem auto 0;
+        position: relative;
+      }
+
+      .step-card {
+        background: white;
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        position: relative;
+        text-align: center;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid transparent;
+      }
+
+      .step-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 60px rgba(255, 69, 0, 0.2);
+        border-color: #ff4500;
+      }
+
+      .step-number {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.75rem;
+        font-weight: 900;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 6px 20px rgba(255, 69, 0, 0.3);
+        position: relative;
+      }
+
+      .step-number::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: inherit;
+        animation: pulse 2s infinite;
+        z-index: -1;
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.2); opacity: 0; }
+      }
+
+      .step-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #fff5f2 0%, #ffe8e0 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ff4500;
+        font-size: 2.25rem;
+        margin: 1.5rem auto;
+        transition: all 0.3s;
+      }
+
+      .step-card:hover .step-icon {
+        transform: scale(1.15) rotate(-5deg);
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        color: white;
+      }
+
+      .step-card h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1a1a1b;
+      }
+
+      .step-card p {
+        color: #666;
+        line-height: 1.8;
+      }
+
+      /* Features Section - Enhanced */
+      .features-section {
+        padding: 8rem 5%;
+        background: white;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2.5rem;
+        max-width: 1200px;
+        margin: 4rem auto 0;
+      }
+
+      .feature-card {
+        background: linear-gradient(135deg, #ffffff 0%, #fff9f7 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid #f5f5f5;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255, 69, 0, 0.03) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+
+      .feature-card:hover {
+        border-color: #ff4500;
+        transform: translateY(-8px);
+        box-shadow: 0 15px 50px rgba(255, 69, 0, 0.15);
+      }
+
+      .feature-card:hover::before {
+        opacity: 1;
+      }
+
+      .feature-icon {
+        width: 70px;
+        height: 70px;
+        background: white;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ff4500;
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(255, 69, 0, 0.1);
+        transition: all 0.3s;
+      }
+
+      .feature-card:hover .feature-icon {
+        transform: scale(1.1);
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        color: white;
+        box-shadow: 0 6px 25px rgba(255, 69, 0, 0.3);
+      }
+
+      .feature-card h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1a1a1b;
+      }
+
+      .feature-card p {
+        color: #666;
+        line-height: 1.8;
+      }
+
+      /* Pricing Section - Completely Redesigned */
+      .pricing-section {
+        padding: 8rem 5%;
+        background: linear-gradient(180deg, #fff 0%, #fff9f7 50%, #fff5f2 100%);
+        position: relative;
+      }
+
+      .pricing-toggle {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin: 3rem 0;
+        align-items: center;
+      }
+
+      .pricing-toggle-label {
+        font-weight: 600;
+        color: #666;
+        transition: color 0.3s;
+      }
+
+      .pricing-toggle-label.active {
+        color: #ff4500;
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 60px;
+        height: 32px;
+        background: #e0e0e0;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .toggle-switch.active {
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+      }
+
+      .toggle-slider {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.3s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .toggle-switch.active .toggle-slider {
+        left: 32px;
+      }
+
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2.5rem;
+        max-width: 1100px;
+        margin: 3rem auto 0;
+      }
+
+      .pricing-card {
+        background: white;
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        border: 2px solid transparent;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .pricing-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff4500, #ff6b35);
+        transform: scaleX(0);
+        transition: transform 0.4s;
+      }
+
+      .pricing-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 60px rgba(255, 69, 0, 0.2);
+        border-color: #ff4500;
+      }
+
+      .pricing-card:hover::before {
+        transform: scaleX(1);
+      }
+
+      .pricing-card.popular {
+        border-color: #ff4500;
+        transform: scale(1.05);
+      }
+
+      .pricing-card.popular::before {
+        transform: scaleX(1);
+      }
+
+      .popular-badge {
+        position: absolute;
+        top: 20px;
+        right: -35px;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        color: white;
+        padding: 0.5rem 3rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        transform: rotate(45deg);
+        box-shadow: 0 4px 10px rgba(255, 69, 0, 0.3);
+      }
+
+      .pricing-plan-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a1b;
+        margin-bottom: 1rem;
+      }
+
+      .pricing-price {
+        font-size: 3.5rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+        line-height: 1;
+      }
+
+      .pricing-period {
+        color: #666;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        display: block;
+      }
+
+      .pricing-description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        min-height: 60px;
+      }
+
+      .pricing-features {
+        list-style: none;
+        margin-bottom: 2rem;
+      }
+
+      .pricing-features li {
+        padding: 0.75rem 0;
+        color: #1a1a1b;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .pricing-features li:last-child {
+        border-bottom: none;
+      }
+
+      .pricing-features i {
+        color: #ff4500;
+        font-size: 1.1rem;
+      }
+
+      .pricing-cta {
+        width: 100%;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        border: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 69, 0, 0.2);
+      }
+
+      .pricing-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(255, 69, 0, 0.35);
+      }
+
+      .pricing-cta.secondary {
+        background: white;
+        color: #ff4500;
+        border: 2px solid #ff4500;
+      }
+
+      .pricing-cta.secondary:hover {
+        background: #ff4500;
+        color: white;
+      }
+
+      /* Final CTA - Enhanced */
+      .final-cta {
+        padding: 8rem 5%;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .final-cta::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+      }
+
+      .final-cta::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+      }
+
+      .final-cta h2 {
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        font-weight: 900;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .final-cta p {
+        font-size: 1.3rem;
+        margin-bottom: 3rem;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+      }
+
+      .btn-white {
+        background: white;
+        color: #ff4500;
+        padding: 1.25rem 3.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: all 0.3s;
+        display: inline-block;
+        font-size: 1.15rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+        z-index: 1;
+      }
+
+      .btn-white:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Footer - Enhanced */
+      .footer {
+        background: #1a1a1b;
+        padding: 4rem 5% 2rem;
+        color: #999;
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 3rem;
+        margin-bottom: 3rem;
+      }
+
+      .footer-section h4 {
+        color: white;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+      }
+
+      .footer-links {
+        list-style: none;
+      }
+
+      .footer-links li {
+        margin-bottom: 0.75rem;
+      }
+
+      .footer-links a {
+        color: #999;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-block;
+      }
+
+      .footer-links a:hover {
+        color: #ff4500;
+        transform: translateX(5px);
+      }
+
+      .footer-bottom {
+        text-align: center;
+        padding-top: 2rem;
+        border-top: 1px solid #333;
+        color: #666;
+      }
+
+      /* Floating Shapes - Enhanced */
+      .floating-shape {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.08;
+        pointer-events: none;
+      }
+
+      .shape-1 {
+        width: 400px;
+        height: 400px;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        top: 10%;
+        right: -5%;
+      }
+
+      .shape-2 {
+        width: 300px;
+        height: 300px;
+        background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+        bottom: 10%;
+        left: -5%;
+      }
+
+      .shape-3 {
+        width: 250px;
+        height: 250px;
+        background: linear-gradient(135deg, #ff6b35 0%, #ff4500 100%);
+        top: 50%;
+        left: 10%;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .nav-links {
+          display: none;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+          padding: 2rem;
+        }
+
+        .cta-buttons {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+          width: 100%;
+          text-align: center;
+        }
+
+        .navbar {
+          padding: 1rem 5%;
+        }
+
+        .pricing-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .pricing-card.popular {
+          transform: scale(1);
+        }
+
+        .hero h1 {
+          font-size: 2.5rem;
+        }
+
+        .section-title {
+          font-size: 2rem;
+        }
+      }
+
+      /* Loading Spinner */
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <a href="/" class="logo">
+        <div class="logo-icon">R</div>
+        <span>ReddiGen</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#how-it-works">How it Works</a></li>
         <li><a href="#features">Features</a></li>
         <li><a href="#pricing">Pricing</a></li>
-        <li><a href="#how-it-works">How It Works</a></li>
-        <li><a href="/dashboard.html">Dashboard</a></li>
       </ul>
-    </div>
-    
-    <div class="footer-section">
-      <h4>Resources</h4>
-      <ul class="footer-links">
-        <li><a href="#">Documentation</a></li>
-        <li><a href="#">API</a></li>
-        <li><a href="#">Reddit Guide</a></li>
-        <li><a href="#">Best Practices</a></li>
-      </ul>
-    </div>
-    
-    <div class="footer-section">
-      <h4>Company</h4>
-      <ul class="footer-links">
-        <li><a href="#">About</a></li>
-        <li><a href="#">Blog</a></li>
-        <li><a href="#">Contact</a></li>
-        <li><a href="#">Privacy Policy</a></li>
-      </ul>
-    </div>
-  </div>
-  
-  <div class="footer-bottom">
-    <p>&copy; 2025 ReddiGen. All rights reserved. Made with <i class="fas fa-heart" style="color: #FF4500;"></i> for Reddit creators.</p>
-  </div>
-</footer>
+      <div class="nav-account" id="navAccount">
+        <!-- Will be populated by JS -->
+      </div>
+    </nav>
 
-<script>
-// Register ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+      <div class="floating-shape shape-1"></div>
+      <div class="floating-shape shape-2"></div>
+      <div class="floating-shape shape-3"></div>
 
-// Navbar animation
-gsap.from('.navbar', {
-  y: -100,
-  opacity: 0,
-  duration: 1,
-  ease: 'power3.out'
-});
-</script>
+      <div class="hero-content">
+        <div class="badge">
+          <i class="fas fa-sparkles"></i>
+          AI-Powered Reddit Content Generation
+        </div>
 
-</body>
+        <h1>
+          Generate <span class="highlight">Reddit posts</span><br />
+          that <span class="highlight highlight-underline">never get removed</span>
+        </h1>
+
+        <p>
+          ReddiGen automatically fetches subreddit rules and creates perfectly
+          compliant, engaging posts. Stop worrying about post removals and focus on growing your Reddit
+          presence.
+        </p>
+
+        <div class="cta-buttons">
+          <a href="/dashboard.html" class="btn-primary" id="heroCTA">Start Creating Free</a>
+          <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+        </div>
+
+          
+      </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="problem-section">
+      <div class="section-content">
+        <h2 class="section-title">
+          Tired of your Reddit posts
+          <span class="highlight">getting deleted?</span>
+        </h2>
+        <p class="section-subtitle">
+          Every Reddit creator faces the same frustrating problems. You craft
+          the perfect post, hit submit, and minutes later... removed by
+          moderators.
+        </p>
+
+        <div class="problem-grid">
+          <div class="problem-card">
+            <div class="problem-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Constant Rule Violations</h3>
+            <p>
+              Each subreddit has different rules. Breaking them means instant
+              removal and wasted effort.
+            </p>
+          </div>
+
+          <div class="problem-card">
+            <div class="problem-icon">
+              <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3>Moderator Removals</h3>
+            <p>
+              Hours of work vanish in seconds when moderators remove your
+              carefully crafted content.
+            </p>
+          </div>
+
+          <div class="problem-card">
+            <div class="problem-icon">
+              <i class="fas fa-book"></i>
+            </div>
+            <h3>Confusing Guidelines</h3>
+            <p>
+              Reading through lengthy rule pages for every subreddit is
+              time-consuming and confusing.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works">
+      <div class="section-content">
+        <h2 class="section-title">How ReddiGen Works</h2>
+        <p class="section-subtitle">
+          Three simple steps to create rule-compliant, engaging Reddit posts
+        </p>
+
+        <div class="steps-container">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <h3>Select Subreddit</h3>
+            <p>
+              Enter any subreddit name and our AI instantly fetches all posting
+              rules, guidelines, and community standards.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon">
+              <i class="fas fa-edit"></i>
+            </div>
+            <h3>Customize Content</h3>
+            <p>
+              Provide your topic, choose your tone (casual, professional,
+              funny), and set any specific requirements for your post.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon">
+              <i class="fas fa-magic"></i>
+            </div>
+            <h3>Generate & Post</h3>
+            <p>
+              AI generates a perfectly compliant post following all subreddit
+              rules. Review, edit if needed, and publish with confidence.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+      <div class="section-content">
+        <h2 class="section-title">Powerful Features for Reddit Success</h2>
+        <p class="section-subtitle">
+          Everything you need to create engaging, rule-compliant content
+        </p>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-robot"></i>
+            </div>
+            <h3>Automatic Rule Fetching</h3>
+            <p>
+              Instantly retrieves and analyzes all subreddit rules, posting
+              guidelines, and community standards.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>100% Compliance</h3>
+            <p>
+              AI ensures every generated post follows all rules, reducing
+              removal risk to virtually zero.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-palette"></i>
+            </div>
+            <h3>Multiple Tone Options</h3>
+            <p>
+              Choose from casual, professional, humorous, educational, or
+              discussion-starter tones.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Lightning Fast</h3>
+            <p>
+              Generate compliant posts in under 5 seconds. No more hours spent
+              researching rules.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-history"></i>
+            </div>
+            <h3>Post History</h3>
+            <p>
+              Track all your generated posts, save favorites, and reuse
+              successful formats.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Engagement Optimization</h3>
+            <p>
+              AI analyzes successful posts in each subreddit to maximize
+              engagement potential.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+      <div class="section-content">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <p class="section-subtitle">
+          Choose the perfect plan for your Reddit content needs
+        </p>
+
+        <div class="pricing-toggle">
+          <span class="pricing-toggle-label" id="monthlyLabel">Monthly</span>
+          <div class="toggle-switch" id="billingToggle">
+            <div class="toggle-slider"></div>
+          </div>
+          <span class="pricing-toggle-label active" id="yearlyLabel">Yearly <small>(Save 28%)</small></span>
+        </div>
+
+        <div class="pricing-grid">
+          <!-- Starter Plan -->
+          <div class="pricing-card">
+            <div class="pricing-plan-name">Starter</div>
+            <div class="pricing-price" data-monthly="1.29" data-yearly="11.11">$1.29</div>
+            <span class="pricing-period">/month</span>
+            <p class="pricing-description">Perfect for individual creators getting started</p>
+            
+            <ul class="pricing-features">
+              <li><i class="fas fa-check-circle"></i> <span data-monthly="150" data-yearly="1800">150</span> posts per month</li>
+              <li><i class="fas fa-check-circle"></i> AI generation</li>
+              <li><i class="fas fa-check-circle"></i> Rule optimization</li>
+              <li><i class="fas fa-check-circle"></i> Post history</li>
+              <li><i class="fas fa-check-circle"></i> Email support</li>
+            </ul>
+
+            <button class="pricing-cta" data-plan="starter">Get Started</button>
+          </div>
+
+          <!-- Professional Plan - Popular -->
+          <div class="pricing-card popular">
+            <div class="popular-badge">Most Popular</div>
+            <div class="pricing-plan-name">Professional</div>
+            <div class="pricing-price" data-monthly="2.29" data-yearly="19.22">$2.29</div>
+            <span class="pricing-period">/month</span>
+            <p class="pricing-description">For serious creators and marketers</p>
+            
+            <ul class="pricing-features">
+              <li><i class="fas fa-check-circle"></i> <span data-monthly="250" data-yearly="3000">250</span> posts per month</li>
+              <li><i class="fas fa-check-circle"></i> Advanced AI models</li>
+              <li><i class="fas fa-check-circle"></i> Priority generation</li>
+              <li><i class="fas fa-check-circle"></i> Scheduling features</li>
+              <li><i class="fas fa-check-circle"></i> Priority support</li>
+              <li><i class="fas fa-check-circle"></i> Analytics dashboard</li>
+            </ul>
+
+            <button class="pricing-cta" data-plan="professional">Get Started</button>
+          </div>
+
+          <!-- Lifetime Plan -->
+          <div class="pricing-card">
+            <div class="pricing-plan-name">Lifetime Access</div>
+            <div class="pricing-price">$29.00</div>
+            <span class="pricing-period">one-time payment</span>
+            <p class="pricing-description">Pay once, use forever - best value!</p>
+            
+            <ul class="pricing-features">
+              <li><i class="fas fa-check-circle"></i> 300 posts per month (forever)</li>
+              <li><i class="fas fa-check-circle"></i> All Professional features</li>
+              <li><i class="fas fa-check-circle"></i> Lifetime updates</li>
+              <li><i class="fas fa-check-circle"></i> VIP support</li>
+              <li><i class="fas fa-check-circle"></i> Early access to new features</li>
+              <li><i class="fas fa-check-circle"></i> No recurring charges</li>
+            </ul>
+
+            <button class="pricing-cta" data-plan="lifetime">Get Lifetime Access</button>
+          </div>
+        </div>
+
+        <p style="text-align: center; margin-top: 3rem; color: #666;">
+          <i class="fas fa-lock"></i> Secure checkout powered by Dodo Payments
+        </p>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+      <h2>Ready to Never Get Your Posts Removed Again?</h2>
+      <p>
+        Join thousands of creators using AI to generate rule-compliant Reddit
+        content
+      </p>
+      <a href="/dashboard.html" class="btn-white" id="finalCTA">Start Creating Free Posts</a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4><i class="fas fa-robot"></i> ReddiGen</h4>
+          <p>
+            AI-powered Reddit post generator that ensures 100% rule compliance.
+          </p>
+        </div>
+
+        <div class="footer-section">
+          <h4>Product</h4>
+          <ul class="footer-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="/dashboard.html">Dashboard</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Resources</h4>
+          <ul class="footer-links">
+            <li><a href="#">Documentation</a></li>
+            <li><a href="#">API</a></li>
+            <li><a href="#">Reddit Guide</a></li>
+            <li><a href="#">Best Practices</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Company</h4>
+          <ul class="footer-links">
+            <li><a href="#">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>
+          &copy; 2025 ReddiGen. All rights reserved. Made with
+          <i class="fas fa-heart" style="color: #ff4500"></i> for Reddit
+          creators.
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      // ============================================
+      // CONFIGURATION
+      // ============================================
+      const SUPABASE_URL = 'https://duzaoqvdukdnbjzccwbp.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1emFvcXZkdWtkbmJqemNjd2JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTE2MTIsImV4cCI6MjA3NzQ2NzYxMn0.eMvGGHRuqzeGjVMjfLViaJnMvaKryGCPWWaDyFK6UP8';
+      
+      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      
+      let currentUser = null;
+      let isYearly = true; // Default to yearly
+
+      // ============================================
+      // PRICING DATA
+      // ============================================
+      const PRICING_DATA = {
+        starter: {
+          monthly: {
+            price: 1.29,
+            posts: 150,
+            checkoutUrl: 'https://checkout.dodopayments.com/buy/pdt_LBHf0mWr6mV54umDhx9cn?quantity=1'
+          },
+          yearly: {
+            price: 11.11,
+            posts: 1800,
+            checkoutUrl: 'https://checkout.dodopayments.com/buy/pdt_RBEfQWVlN9bnWihieBQSt?quantity=1'
+          }
+        },
+        professional: {
+          monthly: {
+            price: 2.29,
+            posts: 250,
+            checkoutUrl: 'https://checkout.dodopayments.com/buy/pdt_dumBrrIeNTtENukKXHiGh?quantity=1'
+          },
+          yearly: {
+            price: 19.22,
+            posts: 3000,
+            checkoutUrl: 'https://checkout.dodopayments.com/buy/pdt_gBCE38rNQm8x30iqAltc6?quantity=1'
+          }
+        },
+        lifetime: {
+          monthly: {
+            price: 29.00,
+            posts: 300,
+            checkoutUrl: 'https://checkout.dodopayments.com/buy/pdt_RRL3ngdmgYA1bwfFcbOVl?quantity=1'
+          },
+          yearly: {
+            price: 29.00,
+            posts: 300,
+            checkoutUrl: 'https://checkout.dodopayments.com/buy/pdt_RRL3ngdmgYA1bwfFcbOVl?quantity=1'
+          }
+        }
+      };
+
+      // ============================================
+      // INITIALIZATION
+      // ============================================
+      document.addEventListener('DOMContentLoaded', async () => {
+        console.log('✅ Landing page initializing...');
+        
+        initAnimations();
+        initPricingToggle();
+        initSmoothScroll();
+        
+        // Check authentication
+        await checkAuth();
+        
+        // Setup event listeners
+        setupEventListeners();
+      });
+
+      // ============================================
+      // AUTHENTICATION
+      // ============================================
+      async function checkAuth() {
+        try {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          
+          if (session) {
+            currentUser = session.user;
+            console.log('✅ User authenticated:', currentUser.email);
+            updateNavForAuthUser();
+          } else {
+            console.log('ℹ️ User not authenticated');
+            updateNavForGuest();
+          }
+          
+          // Listen for auth changes
+          supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session) {
+              currentUser = session.user;
+              updateNavForAuthUser();
+            } else {
+              currentUser = null;
+              updateNavForGuest();
+            }
+          });
+        } catch (error) {
+          console.error('❌ Auth check error:', error);
+          updateNavForGuest();
+        }
+      }
+
+      function updateNavForAuthUser() {
+        const navAccount = document.getElementById('navAccount');
+        const heroCTA = document.getElementById('heroCTA');
+        const finalCTA = document.getElementById('finalCTA');
+        
+        const initials = currentUser.email.substring(0, 2).toUpperCase();
+        
+        navAccount.innerHTML = `
+          <div class="user-dropdown">
+            <div class="user-avatar" onclick="toggleDropdown()">
+              ${initials}
+            </div>
+            <div class="dropdown-menu-custom" id="userDropdown">
+              <div class="dropdown-item-custom" style="pointer-events: none; opacity: 0.7;">
+                <i class="fas fa-user"></i>
+                <span>${currentUser.email}</span>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a href="/dashboard.html" class="dropdown-item-custom">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+              </a>
+              <a href="/dashboard.html#pricing" class="dropdown-item-custom">
+                <i class="fas fa-crown"></i>
+                <span>Upgrade Plan</span>
+              </a>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item-custom" onclick="handleSignOut()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sign Out</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Update CTA buttons
+        if (heroCTA) heroCTA.textContent = 'Go to Dashboard';
+        if (finalCTA) finalCTA.textContent = 'Go to Dashboard';
+      }
+
+      function updateNavForGuest() {
+        const navAccount = document.getElementById('navAccount');
+        
+        navAccount.innerHTML = `
+          <a href="/dashboard.html" class="btn-primary">Get Started Free</a>
+        `;
+      }
+
+      function toggleDropdown() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.classList.toggle('show');
+      }
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('userDropdown');
+        const avatar = document.querySelector('.user-avatar');
+        
+        if (dropdown && !dropdown.contains(e.target) && e.target !== avatar) {
+          dropdown.classList.remove('show');
+        }
+      });
+
+      async function handleSignOut() {
+        try {
+          await supabaseClient.auth.signOut();
+          window.location.reload();
+        } catch (error) {
+          console.error('❌ Sign out error:', error);
+          alert('Failed to sign out. Please try again.');
+        }
+      }
+
+      // ============================================
+      // PRICING FUNCTIONS
+      // ============================================
+      function initPricingToggle() {
+        const toggle = document.getElementById('billingToggle');
+        const monthlyLabel = document.getElementById('monthlyLabel');
+        const yearlyLabel = document.getElementById('yearlyLabel');
+        
+        // Set initial state to yearly
+        toggle.classList.add('active');
+        monthlyLabel.classList.remove('active');
+        yearlyLabel.classList.add('active');
+        updatePricingDisplay();
+        
+        toggle.addEventListener('click', () => {
+          isYearly = !isYearly;
+          toggle.classList.toggle('active');
+          monthlyLabel.classList.toggle('active');
+          yearlyLabel.classList.toggle('active');
+          updatePricingDisplay();
+        });
+      }
+
+      function updatePricingDisplay() {
+        const cycle = isYearly ? 'yearly' : 'monthly';
+        
+        // Update prices
+        document.querySelectorAll('.pricing-price').forEach(el => {
+          const monthly = el.getAttribute('data-monthly');
+          const yearly = el.getAttribute('data-yearly');
+          
+          if (monthly && yearly) {
+            el.textContent = isYearly ? `${yearly}` : `${monthly}`;
+          }
+        });
+        
+        // Update periods
+        document.querySelectorAll('.pricing-period').forEach(el => {
+          if (!el.textContent.includes('one-time')) {
+            el.textContent = isYearly ? '/year' : '/month';
+          }
+        });
+        
+        // Update post counts
+        document.querySelectorAll('.pricing-features span[data-monthly]').forEach(el => {
+          const monthly = el.getAttribute('data-monthly');
+          const yearly = el.getAttribute('data-yearly');
+          
+          if (monthly && yearly) {
+            el.textContent = isYearly ? yearly : monthly;
+          }
+        });
+      }
+
+      function setupEventListeners() {
+        // Pricing buttons
+        document.querySelectorAll('[data-plan]').forEach(button => {
+          button.addEventListener('click', () => {
+            const plan = button.getAttribute('data-plan');
+            handlePurchase(plan);
+          });
+        });
+      }
+
+      async function handlePurchase(planType) {
+        console.log('🛒 Purchase initiated:', planType);
+        
+        // Check if user is authenticated
+        if (!currentUser) {
+          console.log('⚠️ User not authenticated, redirecting to dashboard');
+          // Save purchase intent
+          try {
+            const cycle = (planType === 'lifetime') ? 'monthly' : (isYearly ? 'yearly' : 'monthly');
+            localStorage.setItem('pending_purchase_intent', `${planType}_${cycle}`);
+          } catch (e) {
+            console.warn('Could not save purchase intent:', e);
+          }
+          
+          // Redirect to dashboard for authentication
+          window.location.href = '/dashboard.html';
+          return;
+        }
+        
+        // User is authenticated, proceed with checkout
+        const cycle = (planType === 'lifetime') ? 'monthly' : (isYearly ? 'yearly' : 'monthly');
+        const planData = PRICING_DATA[planType][cycle];
+        
+        if (!planData) {
+          console.error('❌ Invalid plan configuration');
+          alert('Invalid plan selected. Please try again.');
+          return;
+        }
+        
+        // Show loading on button
+        const button = document.querySelector(`[data-plan="${planType}"]`);
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="spinner"></span> Processing...';
+        button.disabled = true;
+        
+        try {
+          // Save payment data
+          const pendingPayment = {
+            userId: currentUser.id,
+            email: currentUser.email,
+            plan: planType,
+            billingCycle: cycle,
+            postsPerMonth: planData.posts,
+            amount: planData.price,
+            timestamp: Date.now()
+          };
+          
+          localStorage.setItem('pending_payment', JSON.stringify(pendingPayment));
+          console.log('💾 Payment data saved');
+          
+          // Build redirect URLs
+          const returnUrl = window.location.origin;
+          const successRedirect = `${returnUrl}/dashboard.html?payment=success&plan=${planType}&cycle=${cycle}`;
+          
+          // Build checkout URL with redirect
+          const checkoutUrl = new URL(planData.checkoutUrl);
+          checkoutUrl.searchParams.set('redirect_url', successRedirect);
+          
+          console.log('🔗 Redirecting to:', checkoutUrl.toString());
+          
+          // Redirect to checkout
+          window.location.href = checkoutUrl.toString();
+          
+        } catch (error) {
+          console.error('❌ Purchase error:', error);
+          alert('Failed to initiate purchase. Please try again.');
+          button.innerHTML = originalText;
+          button.disabled = false;
+        }
+      }
+
+      // ============================================
+      // ANIMATIONS
+      // ============================================
+      function initAnimations() {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Navbar animation
+        gsap.from('.navbar', {
+          y: -100,
+          opacity: 0,
+          duration: 1,
+          ease: 'power3.out'
+        });
+
+        // Hero content animation
+        gsap.from('.hero-content > *', {
+          y: 50,
+          opacity: 0,
+          duration: 1,
+          stagger: 0.2,
+          ease: 'power3.out',
+          delay: 0.3
+        });
+
+        // Floating shapes animation
+        gsap.to('.shape-1', {
+          y: -30,
+          x: 10,
+          duration: 8,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+
+        gsap.to('.shape-2', {
+          y: 30,
+          x: -10,
+          duration: 10,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+
+        gsap.to('.shape-3', {
+          y: 20,
+          x: 20,
+          duration: 12,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+
+        // Scroll-triggered animations
+        gsap.utils.toArray('.problem-card, .step-card, .feature-card, .pricing-card').forEach((elem, i) => {
+          gsap.fromTo(elem,
+            { y: 60, opacity: 0, scale: 0.95 },
+            {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              duration: 0.8,
+              ease: 'power3.out',
+              delay: i * 0.1,
+              scrollTrigger: {
+                trigger: elem,
+                start: 'top 85%',
+                toggleActions: 'play none none none'
+              }
+            }
+          );
+        });
+
+        // Add hover tilt effect
+        document.querySelectorAll('.problem-card, .feature-card, .step-card, .pricing-card').forEach(card => {
+          card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            
+            card.style.transform = `translateY(-4px) rotateX(${-y * 4}deg) rotateY(${x * 6}deg)`;
+            card.style.transition = 'transform 0.1s ease-out';
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            card.style.transform = '';
+            card.style.transition = 'transform 0.3s ease-out';
+          });
+        });
+      }
+
+      // ============================================
+      // SMOOTH SCROLL
+      // ============================================
+      function initSmoothScroll() {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href.length > 1) {
+              e.preventDefault();
+              const target = document.querySelector(href);
+              if (target) {
+                target.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+              }
+            }
+          });
+        });
+      }
+
+      // ============================================
+      // UTILITY FUNCTIONS
+      // ============================================
+      console.log('🚀 ReddiGen Landing Page Loaded');
+    </script>
+  </body>
 </html>
-

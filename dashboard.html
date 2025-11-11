@@ -174,10 +174,7 @@
           <i class="fas fa-history"></i>
           <span>Post History</span>
         </a>
-        <a href="#" class="sidebar-item" data-page="profile">
-          <i class="fas fa-user"></i>
-          <span>Profile</span>
-        </a>
+        <!-- Profile moved into Settings; sidebar link removed -->
         <a href="#" class="sidebar-item" data-page="settings">
           <i class="fas fa-cog"></i>
           <span>Settings</span>
@@ -227,28 +224,11 @@
         </div>
 
         <div class="d-flex align-items-center gap-3">
-          <button
-            class="btn btn-outline-reddit btn-sm"
-            onclick="navigateToPage('pricing')"
-          >
-            <i class="fas fa-crown me-2"></i>Upgrade to Pro
-          </button>
+          
           <div class="dropdown">
-            <button
-              class="user-avatar dropdown-toggle"
-              type="button"
-              id="userProfileDropdown"
-              data-bs-toggle="dropdown"
-            >
-              <i class="fas fa-user"></i>
-            </button>
+           
             <ul class="dropdown-menu dropdown-menu-end shadow-lg">
-              <li>
-                <h6 class="dropdown-header fw-bold">
-                  <i class="fas fa-user-circle me-2"></i
-                  ><span id="dropdownUserName">User</span>
-                </h6>
-              </li>
+            
               <li>
                 <p
                   class="dropdown-header text-muted small"
@@ -296,7 +276,7 @@
               </li>
               <li><hr class="dropdown-divider" /></li>
               <li>
-                <a class="dropdown-item" href="#" data-page-link="profile"
+                <a class="dropdown-item" href="#" data-page-link="settings"
                   ><i class="fas fa-user-circle me-2"></i>View Profile</a
                 >
               </li>
@@ -685,15 +665,18 @@
           </div>
         </div>
 
-        <div id="profileSection" class="content-section">
+        <!-- Profile removed as a separate page; merged into Settings with enhanced features -->
+        <div id="settingsSection" class="content-section active">
           <div class="row">
             <div class="col-lg-8 mx-auto">
-              <div class="card shadow-sm">
+              <div class="card shadow-sm mb-4">
                 <div class="card-body p-4">
-                  <h4 class="fw-bold mb-4">
-                    <i class="fas fa-user text-primary me-2"></i>Your Profile
-                  </h4>
+                  <h5 class="fw-bold mb-4">
+                    <i class="fas fa-user-circle text-primary me-2"></i>Your
+                    Profile & Settings
+                  </h5>
 
+                  <!-- Profile header (avatar, name, email) moved into settings -->
                   <div class="text-center mb-4">
                     <div
                       class="profile-avatar-large mx-auto mb-3"
@@ -707,6 +690,7 @@
 
                   <hr />
 
+                  <!-- Key stats moved into settings for easier access -->
                   <div class="row g-3 mb-4">
                     <div class="col-md-4 text-center">
                       <div class="stat-card">
@@ -733,25 +717,11 @@
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div id="settingsSection" class="content-section">
-          <div class="row">
-            <div class="col-lg-8 mx-auto">
-              <div class="card shadow-sm mb-4">
-                <div class="card-body p-4">
-                  <h5 class="fw-bold mb-4">
-                    <i class="fas fa-user-circle text-primary me-2"></i>Profile
-                    Information
-                  </h5>
-
+                  <!-- Existing settings form -->
                   <div class="text-center mb-4">
                     <div
-                      class="profile-avatar-large mx-auto mb-3"
+                      class="profile-avatar-small mx-auto mb-3"
                       id="settingsProfileAvatar"
                     >
                       <i class="fas fa-user fa-3x"></i>
@@ -880,17 +850,17 @@
             <h4 class="fw-bold mb-4">
               <i class="fas fa-crown text-warning me-2"></i>Upgrade Your Plan
             </h4>
-<div id="currentPlanSection" style="display: none;">
-  <div class="container py-5">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div id="currentPlanCard">
-          <!-- Will be populated by JavaScript -->
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+            <div id="currentPlanSection" style="display: none">
+              <div class="container py-5">
+                <div class="row justify-content-center">
+                  <div class="col-md-6">
+                    <div id="currentPlanCard">
+                      <!-- Will be populated by JavaScript -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="mb-4 text-center">
               <div class="btn-group" role="group">
                 <input
@@ -928,7 +898,7 @@
                       <span
                         class="display-5 fw-bold text-info"
                         id="starterPrice"
-                        >$1.99</span
+                        >$1.29</span
                       >
                       <small class="text-muted">
                         <span id="starterBilling">/month</span>
@@ -990,7 +960,7 @@
                       <span
                         class="display-5 fw-bold text-warning"
                         id="professionalPrice"
-                        >$2.99</span
+                        >$2.29</span
                       >
                       <small class="text-muted">
                         <span id="professionalBilling">/month</span>
@@ -1039,12 +1009,12 @@
               <div class="col-lg-4">
                 <div class="card h-100 shadow-sm border-0">
                   <div class="card-body p-4 d-flex flex-column">
-                    <h5 class="card-title fw-bold mb-2">Enterprise</h5>
+                    <h5 class="card-title fw-bold mb-2">Lifetime</h5>
                     <div class="mb-4">
                       <span
                         class="display-5 fw-bold text-danger"
                         id="enterprisePrice"
-                        >$3.99</span
+                        >$29.00</span
                       >
                       <small class="text-muted">
                         <span id="enterpriseBilling">/month</span>
@@ -1055,7 +1025,7 @@
                       <li class="mb-2">
                         <i class="fas fa-check text-success me-2"></i>
                         <strong id="enterprisePosts"
-                          >500 Posts per month</strong
+                          >300 Posts per month (Lifetime access)</strong
                         >
                       </li>
                       <li class="mb-2">
@@ -1063,20 +1033,12 @@
                         Professional Features
                       </li>
                       <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i> Custom AI
-                        Training
+                        <i class="fas fa-check text-success me-2"></i> Lifetime
+                        Access (one-time purchase product)
                       </li>
                       <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i> White
-                        Label Support
-                      </li>
-                      <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i> 24/7
-                        Premium Support
-                      </li>
-                      <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i> Advanced
-                        Analytics
+                        <i class="fas fa-check text-success me-2"></i> Priority
+                        Support
                       </li>
                     </ul>
 
@@ -1084,7 +1046,7 @@
                       class="btn btn-danger w-100 fw-bold mt-auto"
                       onclick="initiateDodoPayment('enterprise')"
                     >
-                      <i class="fas fa-crown me-2"></i>Go Enterprise
+                      <i class="fas fa-crown me-2"></i>Buy Lifetime
                     </button>
                   </div>
                 </div>
@@ -1279,47 +1241,65 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="dashboard.js"></script>
     <!-- Payment Success Modal -->
-<div class="modal fade" id="paymentSuccessModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg">
-      <div class="modal-body text-center p-5">
-        <div class="mb-4">
-          <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
-        </div>
-        <h2 class="fw-bold mb-3">🎉 Congratulations!</h2>
-        <h5 class="text-muted mb-4">Your plan has been activated successfully!</h5>
-        
-        <div class="card bg-light border-0 p-4 mb-4">
-          <div class="row text-start">
-            <div class="col-6">
-              <p class="text-muted mb-2">Plan:</p>
-              <h5 class="fw-bold mb-3" id="successPlanName">Starter Plan</h5>
-              
-              <p class="text-muted mb-2">Credits:</p>
-              <h5 class="fw-bold" id="successCredits">50 posts</h5>
+    <div
+      class="modal fade"
+      id="paymentSuccessModal"
+      tabindex="-1"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-body text-center p-5">
+            <div class="mb-4">
+              <i
+                class="fas fa-check-circle text-success"
+                style="font-size: 5rem"
+              ></i>
             </div>
-            <div class="col-6">
-              <p class="text-muted mb-2">Billing:</p>
-              <h5 class="fw-bold mb-3" id="successBilling">Monthly</h5>
-              
-              <p class="text-muted mb-2">Expires:</p>
-              <h5 class="fw-bold" id="successExpiry">Dec 8, 2025</h5>
+            <h2 class="fw-bold mb-3">🎉 Congratulations!</h2>
+            <h5 class="text-muted mb-4">
+              Your plan has been activated successfully!
+            </h5>
+
+            <div class="card bg-light border-0 p-4 mb-4">
+              <div class="row text-start">
+                <div class="col-6">
+                  <p class="text-muted mb-2">Plan:</p>
+                  <h5 class="fw-bold mb-3" id="successPlanName">
+                    Starter Plan
+                  </h5>
+
+                  <p class="text-muted mb-2">Credits:</p>
+                  <h5 class="fw-bold" id="successCredits">50 posts</h5>
+                </div>
+                <div class="col-6">
+                  <p class="text-muted mb-2">Billing:</p>
+                  <h5 class="fw-bold mb-3" id="successBilling">Monthly</h5>
+
+                  <p class="text-muted mb-2">Expires:</p>
+                  <h5 class="fw-bold" id="successExpiry">Dec 8, 2025</h5>
+                </div>
+              </div>
             </div>
+
+            <p class="text-muted mb-4">
+              <i class="fas fa-info-circle"></i>
+              You can now generate up to
+              <span id="successPostsCount" class="fw-bold">50</span> Reddit
+              posts per month!
+            </p>
+
+            <button
+              type="button"
+              class="btn btn-reddit btn-lg px-5"
+              onclick="closePaymentSuccessModal()"
+            >
+              Start Creating Posts
+            </button>
           </div>
         </div>
-        
-        <p class="text-muted mb-4">
-          <i class="fas fa-info-circle"></i> 
-          You can now generate up to <span id="successPostsCount" class="fw-bold">50</span> Reddit posts per month!
-        </p>
-        
-        <button type="button" class="btn btn-reddit btn-lg px-5" onclick="closePaymentSuccessModal()">
-          Start Creating Posts
-        </button>
       </div>
     </div>
-  </div>
-</div>
-
   </body>
 </html>

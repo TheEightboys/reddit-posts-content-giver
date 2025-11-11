@@ -1,42 +1,53 @@
 // frontend/api/webhook/dodo.js
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-    try {
-        const payload = req.body;
+  try {
+    const payload = req.body;
 
-        console.log('✅ Dodo Webhook received:', JSON.stringify(payload, null, 2));
+    console.log("✅ Dodo Webhook received:", JSON.stringify(payload, null, 2));
 
-        const { 
-            id: payment_id,
-            status,
-            customer_email,
-            amount,
-            product_id
-        } = payload;
+    const {
+      id: payment_id,
+      status,
+      customer_email,
+      amount,
+      product_id,
+    } = payload;
 
-        // Plan mapping
-        const planMap = {
-            'pdt_XocDrGw3HxTb0nD7nyYyl': { name: 'starter', posts: 150 },
-            'pdt_RBEfQWVlN9bnWihieBQSt': { name: 'starter', posts: 1800 },
-            'pdt_dumBrrIeNTtENukKXHiGh': { name: 'professional', posts: 250 },
-            'pdt_gBCE38rNQm8x30iqAltc6': { name: 'professional', posts: 3000 },
-            'pdt_UHLjlc1qPLgSvK1ubHjgJ': { name: 'enterprise', posts: 500 },
-            'pdt_E9rxQwDMZahet7kADcna5': { name: 'enterprise', posts: 6000 }
-        };
+    // Plan mapping
+    const planMap = {
+      // Starter
+      pdt_LBHf0mWr6mV54umDhx9cn: { name: "starter", posts: 150 },
+      pdt_RBEfQWVlN9bnWihieBQSt: { name: "starter", posts: 1800 },
+      // Professional
+      pdt_dumBrrIeNTtENukKXHiGh: { name: "professional", posts: 250 },
+      pdt_gBCE38rNQm8x30iqAltc6: { name: "professional", posts: 3000 },
+      // Lifetime (Enterprise repurposed)
+      pdt_RRL3ngdmgYA1bwfFcbOVl: { name: "enterprise", posts: 300 },
+      // Legacy/alternate enterprise IDs (kept for backwards compatibility)
+      pdt_UHLjlc1qPLgSvK1ubHjgJ: { name: "enterprise", posts: 500 },
+      pdt_E9rxQwDMZahet7kADcna5: { name: "enterprise", posts: 6000 },
+    };
 
-        const planData = planMap[product_id];
+    const planData = planMap[product_id];
 
-        if (status === 'completed' || status === 'successful' || status === 'paid') {
-            console.log(`✅ Payment successful: ${payment_id}`);
-            console.log(`Plan: ${planData?.name}, Posts: ${planData?.posts}, Email: ${customer_email}`);
-            
-            // TODO: Update user in Supabase
-            // Uncomment when ready to integrate with database:
-            /*
+    if (
+      status === "completed" ||
+      status === "successful" ||
+      status === "paid"
+    ) {
+      console.log(`✅ Payment successful: ${payment_id}`);
+      console.log(
+        `Plan: ${planData?.name}, Posts: ${planData?.posts}, Email: ${customer_email}`
+      );
+
+      // TODO: Update user in Supabase
+      // Uncomment when ready to integrate with database:
+      /*
             import { createClient } from '@supabase/supabase-js';
             const supabase = createClient(
                 process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -51,18 +62,21 @@ export default async function handler(req, res) {
             }).eq('email', customer_email);
             */
 
-            return res.status(200).json({ status: 'success', message: 'Payment recorded' });
-        }
-
-        console.log(`⏳ Payment status: ${status}`);
-        return res.status(200).json({ status: 'received', message: 'Webhook received' });
-
-    } catch (error) {
-        console.error('❌ Webhook error:', error);
-        // Important: Always return 200 to Dodo
-        return res.status(200).json({ 
-            status: 'error', 
-            message: error.message 
-        });
+      return res
+        .status(200)
+        .json({ status: "success", message: "Payment recorded" });
     }
+
+    console.log(`⏳ Payment status: ${status}`);
+    return res
+      .status(200)
+      .json({ status: "received", message: "Webhook received" });
+  } catch (error) {
+    console.error("❌ Webhook error:", error);
+    // Important: Always return 200 to Dodo
+    return res.status(200).json({
+      status: "error",
+      message: error.message,
+    });
+  }
 }
