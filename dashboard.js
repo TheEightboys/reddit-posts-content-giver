@@ -4,7 +4,7 @@ const SUPABASE_ANON_KEY =
 const API_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:3000"
-    : "https://reddit-posts-content-giver.onrender.com";
+    : "https://redrule.site";
 
 // --- GLOBAL STATE ---
 let supabaseClient = null;
