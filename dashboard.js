@@ -1576,18 +1576,29 @@ async function handlePaymentCallback(authSession = null) {
 
       if (verifyResponse.ok && verifyData.success) {
         console.log("✅ Payment verified by Dodo!");
-        
         // Clear pending payment
         localStorage.removeItem("pending_payment");
-        
-        // Reload user data
+
+        // Reload user data and force UI refresh
         await loadUserData();
-        
+        // Extra: update sidebar credits and plan badge
+        if (typeof updatePlanDisplay === "function") {
+          updatePlanDisplay();
+          console.log("🔄 Forced sidebar plan/credits update after payment.");
+        } else {
+          console.warn("updatePlanDisplay() not found!");
+        }
+
+        // Also update credits in sidebar if element exists
+        const sidebarCreditsEl = document.getElementById("sidebarCredits");
+        if (sidebarCreditsEl && window.userPlan) {
+          sidebarCreditsEl.textContent = window.userPlan.credits_remaining || 0;
+          console.log("🔄 Sidebar credits updated to:", window.userPlan.credits_remaining);
+        }
+
         showToast("✅ Payment verified! Your plan is now active! 🎉", "success");
-        
         // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
-        
         return true;
       } else {
         throw new Error(verifyData.error || "Payment verification failed");
