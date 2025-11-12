@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 -- Create payment records table
-CREATE TABLE payment_records (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+CREATE TABLE IF NOT EXISTS payment_records (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   payment_id TEXT UNIQUE NOT NULL,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   plan_type TEXT NOT NULL,
@@ -26,23 +26,7 @@ CREATE TABLE payment_records (
   verified_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
--- Add RLS policies
-ALTER TABLE payment_records ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own payments"
-  ON payment_records FOR SELECT
-  USING (auth.uid() = user_id);
----- Add these fields if they don't exist (safe to run multiple times)
-ALTER TABLE payments 
-ADD COLUMN IF NOT EXISTS dodo_session_id TEXT,
-ADD COLUMN IF NOT EXISTS dodo_payment_intent TEXT,
-ADD COLUMN IF NOT EXISTS metadata JSONB;
-
--- Create index for faster lookups
-CREATE INDEX IF NOT EXISTS idx_payments_dodo_session ON payments(dodo_session_id);
-CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
-CREATE INDEX IF NOT EXISTS idx_payments_user_status ON payments(user_id, status);
- =====================================================
+-- =====================================================
 -- 2. USER PLANS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS user_plans (
@@ -96,6 +80,9 @@ CREATE TABLE IF NOT EXISTS payments (
     status TEXT DEFAULT 'pending' CHECK (
         status IN ('pending', 'completed', 'failed', 'refunded')
     ),
+    dodo_session_id TEXT UNIQUE,
+    dodo_payment_intent TEXT,
+    metadata JSONB,
     completed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -109,6 +96,10 @@ CREATE INDEX IF NOT EXISTS idx_post_history_user_id ON post_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_post_history_created_at ON post_history(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_transaction_id ON payments(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_payments_dodo_session_id ON payments(dodo_session_id);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+CREATE INDEX IF NOT EXISTS idx_payment_records_payment_id ON payment_records(payment_id);
+CREATE INDEX IF NOT EXISTS idx_payment_records_user_id ON payment_records(user_id);
 
 -- =====================================================
 -- 6. ROW LEVEL SECURITY (RLS) - CRITICAL FIX
@@ -118,6 +109,7 @@ ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_records ENABLE ROW LEVEL SECURITY;
 
 -- =====================================================
 -- DROP OLD POLICIES (if they exist)
@@ -129,6 +121,7 @@ DROP POLICY IF EXISTS "Users can read own plan" ON user_plans;
 DROP POLICY IF EXISTS "Users can read own history" ON post_history;
 DROP POLICY IF EXISTS "Users can insert own history" ON post_history;
 DROP POLICY IF EXISTS "Users can read own payments" ON payments;
+DROP POLICY IF EXISTS "Users can view own payments" ON payment_records;
 
 -- =====================================================
 -- NEW POLICIES - SERVICE ROLE BYPASS + USER ACCESS
@@ -209,6 +202,20 @@ FOR SELECT
 TO authenticated
 USING (auth.uid() = user_id);
 
+-- Payment Records Policies
+CREATE POLICY "Service role has full access to payment records"
+ON payment_records
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY "Users can read own payment records"
+ON payment_records
+FOR SELECT
+TO authenticated
+USING (auth.uid() = user_id);
+
 -- =====================================================
 -- 7. GRANT PERMISSIONS TO SERVICE ROLE (CRITICAL)
 -- =====================================================
@@ -216,6 +223,7 @@ GRANT ALL ON user_profiles TO service_role;
 GRANT ALL ON user_plans TO service_role;
 GRANT ALL ON post_history TO service_role;
 GRANT ALL ON payments TO service_role;
+GRANT ALL ON payment_records TO service_role;
 
 -- Grant usage on sequences (needed for auto-increment)
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
