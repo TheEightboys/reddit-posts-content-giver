@@ -38,35 +38,64 @@ async function handler(req, res) {
 
     console.log('✅ User authenticated:', user.email);
 
-    const { sessionId, userId } = req.body;
+    const { sessionId, userId, email } = req.body;
 
-    if (!sessionId) {
-      console.error('❌ No session ID provided');
-      return res.status(400).json({ error: 'Session ID required' });
+    console.log('📥 Request body:', { sessionId, userId, email });
+
+    // Handle case where session ID is missing or lookup_by_user
+    let finalSessionId = sessionId;
+    
+    if (!sessionId || sessionId === 'lookup_by_user' || sessionId.includes("{")) {
+      console.warn('⚠️ Session ID is invalid or missing, will lookup by user...');
+      finalSessionId = null;
     }
 
-    console.log('💳 Session ID:', sessionId);
+    if (!finalSessionId && !email && !userId) {
+      console.error('❌ Cannot verify without session ID or user email');
+      return res.status(400).json({ error: 'Session ID or user email required' });
+    }
+
+    console.log('💳 Final Session ID:', finalSessionId || 'Will lookup by user');
     console.log('👤 User ID:', user.id);
+    console.log('📧 Email:', user.email);
 
     // Check if payment already verified in database
     console.log('\n📊 Checking existing payment records...');
-    const { data: existingPayment, error: checkError } = await supabase
+    
+    let checkQuery = supabase
       .from('payment_records')
       .select('*')
-      .eq('payment_id', sessionId)
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
+    
+    if (finalSessionId) {
+      checkQuery = checkQuery.eq('payment_id', finalSessionId);
+    }
+    
+    const { data: existingPayments, error: checkError } = await checkQuery;
 
     if (checkError && checkError.code !== 'PGRST116') {
-      // PGRST116 = no rows returned, which is expected for new payments
       console.warn('⚠️ Error checking payment_records:', checkError.message);
-      // Don't return error - continue to verify with Dodo
+    }
+
+    // If we found payments, use the most recent one
+    let existingPayment = null;
+    if (existingPayments && existingPayments.length > 0) {
+      existingPayment = existingPayments.sort((a, b) => 
+        new Date(b.created_at) - new Date(a.created_at)
+      )[0];
     }
 
     if (existingPayment) {
-      console.log('✅ Payment already verified in database');
+      console.log('✅ Payment found in database');
+      console.log('   Payment ID:', existingPayment.payment_id);
       console.log('   Plan:', existingPayment.plan_type);
       console.log('   Amount:', existingPayment.amount);
+      
+      // Use this payment's session ID
+      if (!finalSessionId) {
+        finalSessionId = existingPayment.payment_id;
+        console.log('   Using stored session ID:', finalSessionId);
+      }
       
       // Check if plan is activated
       const { data: userPlan } = await supabase
@@ -97,15 +126,26 @@ async function handler(req, res) {
       return res.status(500).json({
         success: false,
         error: 'Payment verification unavailable - DODO_API_KEY not set',
+        details: 'Please set DODO_API_KEY in Render environment variables',
+      });
+    }
+
+    if (!finalSessionId) {
+      console.error('❌ No session ID available for Dodo verification');
+      console.error('   No session ID in request and no recent payment in database');
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot verify payment without session ID',
+        details: 'Please complete payment on Dodo and return to dashboard',
       });
     }
 
     console.log('🔄 Fetching from Dodo API...');
-    console.log('   Endpoint: https://api.dodopayments.com/v1/checkout/sessions/' + sessionId);
+    console.log('   Endpoint: https://api.dodopayments.com/v1/checkout/sessions/' + finalSessionId);
     console.log('   Using API key:', process.env.DODO_API_KEY.substring(0, 20) + '...');
     
     const dodoResponse = await fetch(
-      `https://api.dodopayments.com/v1/checkout/sessions/${sessionId}`,
+      `https://api.dodopayments.com/v1/checkout/sessions/${finalSessionId}`,
       {
         headers: {
           'Authorization': `Bearer ${process.env.DODO_API_KEY}`,
@@ -149,7 +189,7 @@ async function handler(req, res) {
     const { data: newPayment, error: paymentInsertError } = await supabase
       .from('payment_records')
       .insert({
-        payment_id: sessionId,
+        payment_id: finalSessionId,
         user_id: user.id,
         plan_type: planType,
         amount: amount,

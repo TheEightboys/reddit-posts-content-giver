@@ -1146,7 +1146,9 @@ async function initiateDodoPayment(planType) {
       ? "http://localhost:5500"
       : "https://redrule.site";
 
-    const successRedirect = `${returnUrl}/dashboard.html?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+    // Note: Dodo will replace {checkout_session_id} with the actual session ID
+    // See: https://dodopayments.com/docs/redirect-parameters
+    const successRedirect = `${returnUrl}/dashboard.html?payment=success&session_id={checkout_session_id}`;
     
     const checkoutUrl = new URL(planData.checkoutUrl);
     checkoutUrl.searchParams.set("redirect_url", successRedirect);
@@ -1160,7 +1162,19 @@ async function initiateDodoPayment(planType) {
     checkoutUrl.searchParams.set("metadata[postsPerMonth]", planData.posts.toString());
     checkoutUrl.searchParams.set("metadata[amount]", planData.price.toString());
 
+    // Store payment info in localStorage in case we need it
+    const paymentInfo = {
+      planType,
+      billingCycle,
+      amount: planData.price,
+      timestamp: Date.now(),
+      userId: currentUser.id,
+      email: currentUser.email
+    };
+    localStorage.setItem("pending_dodo_payment", JSON.stringify(paymentInfo));
+
     console.log("🔗 Checkout URL:", checkoutUrl.toString());
+    console.log("📦 Pending payment info stored:", paymentInfo);
     
     // Redirect to Dodo
     window.location.href = checkoutUrl.toString();
@@ -1485,12 +1499,42 @@ async function handlePaymentCallback(authSession = null) {
 
   if (paymentStatus === "success") {
     console.log("💳 Payment success detected!");
+    console.log("📍 Session ID from URL:", sessionId);
+    
+    // Handle placeholder or missing session ID
+    if (!sessionId || sessionId.includes("{") || sessionId === "__session_id__") {
+      console.warn("⚠️ Session ID is placeholder or missing!");
+      console.log("   Checking localStorage for pending payment...");
+      
+      const pendingPayment = localStorage.getItem("pending_dodo_payment");
+      if (pendingPayment) {
+        try {
+          const paymentData = JSON.parse(pendingPayment);
+          console.log("   Found pending payment info in localStorage:", paymentData);
+          // Try to fetch the actual session ID from the database
+          // The webhook should have stored it if payment completed
+        } catch (e) {
+          console.error("   Could not parse pending payment:", e);
+        }
+      }
+    }
+    
     showToast("Verifying your payment with Dodo... ⏳", "info");
 
-    if (!sessionId) {
-      console.error("❌ No session ID in URL!");
-      showToast("Payment completed but verification failed. Contact support.", "error");
-      return false;
+    if (!sessionId || sessionId.includes("{") || sessionId === "__session_id__") {
+      console.error("❌ No valid session ID in URL!");
+      console.error("   Session ID from URL:", sessionId);
+      console.error("   Dodo may not have replaced the placeholder. Check Dodo redirect configuration.");
+      showToast("Payment completed but we couldn't verify the session ID. Checking database...", "warning");
+      
+      // Try alternative: check if payment is in database by user email
+      if (!currentUser) {
+        showToast("Please sign in to check payment status", "error");
+        return false;
+      }
+      
+      // Continue anyway and let backend check
+      sessionId = "lookup_by_user";
     }
 
     try {
@@ -1512,6 +1556,7 @@ async function handlePaymentCallback(authSession = null) {
       }
 
       console.log("📡 Verifying payment with backend...");
+      console.log("   Session ID:", sessionId);
       
       // Backend will verify with Dodo API
       const verifyResponse = await fetch(`${API_URL}/api/payment/verify`, {
@@ -1522,7 +1567,8 @@ async function handlePaymentCallback(authSession = null) {
         },
         body: JSON.stringify({ 
           sessionId: sessionId,
-          userId: currentUser.id
+          userId: currentUser.id,
+          email: currentUser.email
         }),
       });
 
