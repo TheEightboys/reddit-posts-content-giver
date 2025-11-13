@@ -114,7 +114,8 @@ app.get("/api/test", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.json({ message: "ReddiGen API", status: "online" });
+  // Serve the dashboard HTML at the root so visiting the site shows the UI
+  res.sendFile(path.join(__dirname, "dashboard.html"));
 });
 
 // Get user data
