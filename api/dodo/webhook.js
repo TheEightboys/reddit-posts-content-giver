@@ -71,8 +71,25 @@ async function handlePaymentSuccess(data) {
     console.log('\n🎉 ========== PAYMENT SUCCESS ==========');
     
     const supabase = getSupabaseClient();
-    const session = data.data || data;
-    const metadata = session.metadata || {};
+    // Extract session - Dodo sends it in data.data.object or data.object
+    let session = null;
+    if (data.data && data.data.object) {
+      session = data.data.object;
+    } else if (data.object) {
+      session = data.object;
+    } else {
+      session = data;
+    }
+    // Extract metadata - could be direct or nested
+    let metadata = session.metadata || data.metadata || {};
+    // If metadata is a string, parse it
+    if (typeof metadata === 'string') {
+      try {
+        metadata = JSON.parse(metadata);
+      } catch (e) {
+        console.warn('Could not parse metadata string:', metadata);
+      }
+    }
     
     console.log('💳 Session ID:', session.id);
     console.log('📧 Customer Email:', session.customer_email);
@@ -80,9 +97,10 @@ async function handlePaymentSuccess(data) {
     console.log('💰 Amount:', session.amount_total);
     
     if (!metadata.userId) {
-      console.error('❌ CRITICAL: No userId in metadata!');
-      console.error('   Metadata received:', metadata);
-      return;
+  console.error('❌ CRITICAL: No userId in metadata!');
+  console.error('   Session data:', JSON.stringify(session, null, 2));
+  console.error('   Metadata received:', JSON.stringify(metadata, null, 2));
+  return;
     }
 
     const userId = metadata.userId;
@@ -234,22 +252,26 @@ async function handler(req, res) {
     const payload = JSON.stringify(req.body);
     console.log('\n📦 Payload size:', payload.length, 'bytes');
     
-    // Verify signature (if secret is set)
+    // Verify signature (if secret is set) - OPTIONAL for development
     if (process.env.DODO_WEBHOOK_SECRET) {
+      console.log('🔐 Signature verification ENABLED');
       if (!signature) {
         console.error('❌ No signature in request headers');
+        console.error('   Available headers:', Object.keys(req.headers));
         return res.status(401).json({ error: 'Missing signature' });
       }
-      
       if (!verifySignature(payload, signature, process.env.DODO_WEBHOOK_SECRET)) {
         console.error('❌ Invalid webhook signature');
+        console.error('   Expected secret to be set as DODO_WEBHOOK_SECRET');
+        console.error('   Signature received length:', signature.length);
         return res.status(401).json({ error: 'Invalid signature' });
       }
-      
       console.log('✅ Signature verified');
     } else {
-      console.warn('⚠️ WARNING: DODO_WEBHOOK_SECRET not set - skipping signature verification');
-      console.warn('   This is insecure! Set DODO_WEBHOOK_SECRET in production');
+      console.warn('⚠️ WARNING: DODO_WEBHOOK_SECRET not set - signature verification DISABLED');
+      console.warn('   ✅ Webhook will process payments without signature checks');
+      console.warn('   ⚠️  For production, add DODO_WEBHOOK_SECRET to Render environment variables');
+      console.warn('   To secure: Get signing secret from Dodo Dashboard → Webhook Settings');
     }
 
     // Acknowledge immediately

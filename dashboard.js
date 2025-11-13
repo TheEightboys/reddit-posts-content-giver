@@ -1,13 +1,14 @@
 const SUPABASE_URL = "https://duzaoqvdukdnbjzccwbp.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1emFvcXZkdWtkbmJqemNjd2JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTE2MTIsImV4cCI6MjA3NzQ2NzYxMn0.eMvGGHRuqzeGjVMjfLViaJnMvaKryGCPWWaDyFK6UP8";
-// ✅ CORRECT - This works for both localhost AND production
+// ✅ CORRECT - Auto-detect backend based on environment
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? "http://localhost:3000"  // Local development
-  : "https://reddit-posts-content-giver.onrender.com";  // Production on Render
+  : "https://reddit-posts-content-giver.onrender.com";  // Production on Render (works from both Vercel & Render)
 
 console.log('🌍 Current domain:', window.location.hostname);
-console.log('🔌 API URL:', API_URL);  // Production backend on Render
+console.log('🔌 API URL:', API_URL);
+console.log('📍 Full URL:', window.location.href);
 
 // --- GLOBAL STATE ---
 let supabaseClient = null;
@@ -232,6 +233,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // This will trigger the 'INITIAL_SESSION' event above
     await checkAuthState();
+
+    // Force hide loading screen after 5 seconds (safety timeout)
+    setTimeout(() => {
+      const loadingEl = document.getElementById("loadingScreen");
+      if (loadingEl && loadingEl.style.display !== "none") {
+        console.warn("⚠️ Loading screen still visible after 5s, forcing hide");
+        hideLoadingScreen();
+      }
+    }, 5000);
   } catch (error) {
     console.error("❌ FATAL: Dashboard initialization failed:", error);
     hideLoadingScreen(); // Hide spinner even on error
@@ -1146,7 +1156,9 @@ async function initiateDodoPayment(planType) {
       ? "http://localhost:5500"
       : "https://redrule.site";
 
-    const successRedirect = `${returnUrl}/dashboard.html?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+    // Note: Dodo will replace {checkout_session_id} with the actual session ID
+    // See: https://dodopayments.com/docs/redirect-parameters
+    const successRedirect = `${returnUrl}/dashboard.html?payment=success&session_id={checkout_session_id}`;
     
     const checkoutUrl = new URL(planData.checkoutUrl);
     checkoutUrl.searchParams.set("redirect_url", successRedirect);
@@ -1160,7 +1172,19 @@ async function initiateDodoPayment(planType) {
     checkoutUrl.searchParams.set("metadata[postsPerMonth]", planData.posts.toString());
     checkoutUrl.searchParams.set("metadata[amount]", planData.price.toString());
 
+    // Store payment info in localStorage in case we need it
+    const paymentInfo = {
+      planType,
+      billingCycle,
+      amount: planData.price,
+      timestamp: Date.now(),
+      userId: currentUser.id,
+      email: currentUser.email
+    };
+    localStorage.setItem("pending_dodo_payment", JSON.stringify(paymentInfo));
+
     console.log("🔗 Checkout URL:", checkoutUrl.toString());
+    console.log("📦 Pending payment info stored:", paymentInfo);
     
     // Redirect to Dodo
     window.location.href = checkoutUrl.toString();
@@ -1485,12 +1509,42 @@ async function handlePaymentCallback(authSession = null) {
 
   if (paymentStatus === "success") {
     console.log("💳 Payment success detected!");
+    console.log("📍 Session ID from URL:", sessionId);
+    
+    // Handle placeholder or missing session ID
+    if (!sessionId || sessionId.includes("{") || sessionId === "__session_id__") {
+      console.warn("⚠️ Session ID is placeholder or missing!");
+      console.log("   Checking localStorage for pending payment...");
+      
+      const pendingPayment = localStorage.getItem("pending_dodo_payment");
+      if (pendingPayment) {
+        try {
+          const paymentData = JSON.parse(pendingPayment);
+          console.log("   Found pending payment info in localStorage:", paymentData);
+          // Try to fetch the actual session ID from the database
+          // The webhook should have stored it if payment completed
+        } catch (e) {
+          console.error("   Could not parse pending payment:", e);
+        }
+      }
+    }
+    
     showToast("Verifying your payment with Dodo... ⏳", "info");
 
-    if (!sessionId) {
-      console.error("❌ No session ID in URL!");
-      showToast("Payment completed but verification failed. Contact support.", "error");
-      return false;
+    if (!sessionId || sessionId.includes("{") || sessionId === "__session_id__") {
+      console.error("❌ No valid session ID in URL!");
+      console.error("   Session ID from URL:", sessionId);
+      console.error("   Dodo may not have replaced the placeholder. Check Dodo redirect configuration.");
+      showToast("Payment completed but we couldn't verify the session ID. Checking database...", "warning");
+      
+      // Try alternative: check if payment is in database by user email
+      if (!currentUser) {
+        showToast("Please sign in to check payment status", "error");
+        return false;
+      }
+      
+      // Continue anyway and let backend check
+      sessionId = "lookup_by_user";
     }
 
     try {
@@ -1512,6 +1566,7 @@ async function handlePaymentCallback(authSession = null) {
       }
 
       console.log("📡 Verifying payment with backend...");
+      console.log("   Session ID:", sessionId);
       
       // Backend will verify with Dodo API
       const verifyResponse = await fetch(`${API_URL}/api/payment/verify`, {
@@ -1522,7 +1577,8 @@ async function handlePaymentCallback(authSession = null) {
         },
         body: JSON.stringify({ 
           sessionId: sessionId,
-          userId: currentUser.id
+          userId: currentUser.id,
+          email: currentUser.email
         }),
       });
 
@@ -1530,18 +1586,29 @@ async function handlePaymentCallback(authSession = null) {
 
       if (verifyResponse.ok && verifyData.success) {
         console.log("✅ Payment verified by Dodo!");
-        
         // Clear pending payment
         localStorage.removeItem("pending_payment");
-        
-        // Reload user data
+
+        // Reload user data and force UI refresh
         await loadUserData();
-        
+        // Extra: update sidebar credits and plan badge
+        if (typeof updatePlanDisplay === "function") {
+          updatePlanDisplay();
+          console.log("🔄 Forced sidebar plan/credits update after payment.");
+        } else {
+          console.warn("updatePlanDisplay() not found!");
+        }
+
+        // Also update credits in sidebar if element exists
+        const sidebarCreditsEl = document.getElementById("sidebarCredits");
+        if (sidebarCreditsEl && window.userPlan) {
+          sidebarCreditsEl.textContent = window.userPlan.credits_remaining || 0;
+          console.log("🔄 Sidebar credits updated to:", window.userPlan.credits_remaining);
+        }
+
         showToast("✅ Payment verified! Your plan is now active! 🎉", "success");
-        
         // Clean URL
         window.history.replaceState({}, document.title, window.location.pathname);
-        
         return true;
       } else {
         throw new Error(verifyData.error || "Payment verification failed");
@@ -1992,7 +2059,12 @@ function showLoadingScreen() {
 
 function hideLoadingScreen() {
   const el = document.getElementById("loadingScreen");
-  if (el) el.style.display = "none";
+  if (el) {
+    el.style.display = "none !important";
+    el.style.visibility = "hidden !important";
+    el.style.opacity = "0 !important";
+    el.setAttribute("hidden", "true");
+  }
 }
 
 function showLoginSection() {

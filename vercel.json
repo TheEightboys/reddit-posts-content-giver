@@ -1,23 +1,41 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.css",
-      "use": "@vercel/static"
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://your-backend.onrender.com/api/$1"
+      "dest": "https://reddit-posts-content-giver.onrender.com/api/$1"
+    },
+    {
+      "src": "/dashboard/?",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/dashboard.html",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/pricing/?",
+      "dest": "/pricing.html"
+    },
+    {
+      "src": "/style.css",
+      "dest": "/style.css"
+    },
+    {
+      "src": "/dashboard.js",
+      "dest": "/dashboard.js"
+    },
+    {
+      "src": "/main.js",
+      "dest": "/main.js"
+    },
+    {
+      "src": "/index.html",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/$",
+      "dest": "/index.html"
     },
     {
       "src": "/(.*)",
