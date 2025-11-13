@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID UNIQUE NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT,
+    phone TEXT,
     display_name TEXT,
     bio TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
