@@ -6,12 +6,16 @@
       "dest": "https://reddit-posts-content-giver.onrender.com/api/$1"
     },
     {
-      "src": "/dashboard",
+      "src": "/dashboard/?",
       "dest": "/dashboard.html"
     },
     {
       "src": "/dashboard.html",
       "dest": "/dashboard.html"
+    },
+    {
+      "src": "/pricing/?",
+      "dest": "/pricing.html"
     },
     {
       "src": "/style.css",
@@ -24,6 +28,10 @@
     {
       "src": "/main.js",
       "dest": "/main.js"
+    },
+    {
+      "src": "/index.html",
+      "dest": "/index.html"
     },
     {
       "src": "/$",
