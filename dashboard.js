@@ -1,13 +1,14 @@
 const SUPABASE_URL = "https://duzaoqvdukdnbjzccwbp.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1emFvcXZkdWtkbmJqemNjd2JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4OTE2MTIsImV4cCI6MjA3NzQ2NzYxMn0.eMvGGHRuqzeGjVMjfLViaJnMvaKryGCPWWaDyFK6UP8";
-// ✅ CORRECT - This works for both localhost AND production
+// ✅ CORRECT - Auto-detect backend based on environment
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? "http://localhost:3000"  // Local development
-  : "https://reddit-posts-content-giver.onrender.com";  // Production on Render
+  : "https://reddit-posts-content-giver.onrender.com";  // Production on Render (works from both Vercel & Render)
 
 console.log('🌍 Current domain:', window.location.hostname);
-console.log('🔌 API URL:', API_URL);  // Production backend on Render
+console.log('🔌 API URL:', API_URL);
+console.log('📍 Full URL:', window.location.href);
 
 // --- GLOBAL STATE ---
 let supabaseClient = null;
