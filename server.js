@@ -285,32 +285,6 @@ app.post("/api/payment/verify", async (req, res) => {
 });
 
 // Dodo webhook
-app.post("/api/dodo/webhook", async (req, res) => {
-  try {
-    const event = req.body;
-    if (event.type === "checkout.session.completed") {
-      const metadata = event.data?.object?.metadata || {};
-      if (metadata.userId) {
-        const expiryDate = new Date();
-        if (metadata.billingCycle === "yearly") expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-        else expiryDate.setMonth(expiryDate.getMonth() + 1);
-
-        await supabase.from("user_plans").upsert({
-          user_id: metadata.userId,
-          plan_type: metadata.planType,
-          posts_per_month: parseInt(metadata.postsPerMonth),
-          credits_remaining: parseInt(metadata.postsPerMonth),
-          billing_cycle: metadata.billingCycle,
-          status: "active",
-          expires_at: expiryDate.toISOString()
-        }, { onConflict: "user_id" });
-      }
-    }
-    res.json({ received: true });
-  } catch (error) {
-    res.status(500).json({ error: "Webhook failed" });
-  }
-});
 
 // ==========================================
 // ERROR HANDLING
