@@ -233,6 +233,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // This will trigger the 'INITIAL_SESSION' event above
     await checkAuthState();
+
+    // Force hide loading screen after 5 seconds (safety timeout)
+    setTimeout(() => {
+      const loadingEl = document.getElementById("loadingScreen");
+      if (loadingEl && loadingEl.style.display !== "none") {
+        console.warn("⚠️ Loading screen still visible after 5s, forcing hide");
+        hideLoadingScreen();
+      }
+    }, 5000);
   } catch (error) {
     console.error("❌ FATAL: Dashboard initialization failed:", error);
     hideLoadingScreen(); // Hide spinner even on error
@@ -2050,7 +2059,12 @@ function showLoadingScreen() {
 
 function hideLoadingScreen() {
   const el = document.getElementById("loadingScreen");
-  if (el) el.style.display = "none";
+  if (el) {
+    el.style.display = "none !important";
+    el.style.visibility = "hidden !important";
+    el.style.opacity = "0 !important";
+    el.setAttribute("hidden", "true");
+  }
 }
 
 function showLoginSection() {
