@@ -255,8 +255,9 @@ async function handler(req, res) {
     const payload = JSON.stringify(req.body);
     console.log('\n📦 Payload size:', payload.length, 'bytes');
     
-    // Verify signature (if secret is set)
+    // Verify signature (if secret is set) - OPTIONAL for development
     if (process.env.DODO_WEBHOOK_SECRET) {
+      console.log('🔐 Signature verification ENABLED');
       if (!signature) {
         console.error('❌ No signature in request headers');
         console.error('   Available headers:', Object.keys(req.headers));
@@ -272,11 +273,10 @@ async function handler(req, res) {
       
       console.log('✅ Signature verified');
     } else {
-      console.warn('⚠️ WARNING: DODO_WEBHOOK_SECRET not set - skipping signature verification');
-      console.warn('   For Render deployment:');
-      console.warn('   1. Get webhook signing secret from Dodo Dashboard');
-      console.warn('   2. Add to Render environment variables as DODO_WEBHOOK_SECRET');
-      console.warn('   3. This is insecure in production!');
+      console.warn('⚠️ WARNING: DODO_WEBHOOK_SECRET not set - signature verification DISABLED');
+      console.warn('   ✅ Webhook will process payments without signature checks');
+      console.warn('   ⚠️  For production, add DODO_WEBHOOK_SECRET to Render environment variables');
+      console.warn('   To secure: Get signing secret from Dodo Dashboard → Webhook Settings');
     }
 
     // Acknowledge immediately
