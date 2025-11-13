@@ -6,40 +6,20 @@
       "dest": "https://reddit-posts-content-giver.onrender.com/api/$1"
     },
     {
-      "src": "/dashboard/?",
+      "src": "/dashboard",
       "dest": "/dashboard.html"
     },
     {
-      "src": "/dashboard.html",
-      "dest": "/dashboard.html"
-    },
-    {
-      "src": "/pricing/?",
+      "src": "/pricing",
       "dest": "/pricing.html"
-    },
-    {
-      "src": "/style.css",
-      "dest": "/style.css"
-    },
-    {
-      "src": "/dashboard.js",
-      "dest": "/dashboard.js"
-    },
-    {
-      "src": "/main.js",
-      "dest": "/main.js"
-    },
-    {
-      "src": "/index.html",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/$",
-      "dest": "/index.html"
     },
     {
       "src": "/(.*)",
       "dest": "/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
     }
   ]
 }
